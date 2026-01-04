@@ -2,52 +2,40 @@ package com.volunteer.volunteer_app_backend.controller;
 
 import com.volunteer.volunteer_app_backend.model.Task;
 import com.volunteer.volunteer_app_backend.service.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tasks")
-@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class TaskController {
 
-    @Autowired
-    private TaskService taskService;
+    private final TaskService taskService;
 
     @GetMapping
-    public List<Task> getAllTasks() {
-        return taskService.getAllTasks();
+    public List<Task> getAll() {
+        return taskService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Optional<Task> getTaskById(@PathVariable Long id) {
-        return taskService.getTaskById(id);
-    }
-
-    @GetMapping("/project/{projectId}")
-    public List<Task> getTasksByProject(@PathVariable Long projectId) {
-        return taskService.getTasksByProject(projectId);
-    }
-
-    @GetMapping("/user/{userId}")
-    public List<Task> getTasksByUser(@PathVariable Long userId) {
-        return taskService.getTasksByUser(userId);
+    public Task getById(@PathVariable Long id) {
+        return taskService.getById(id);
     }
 
     @PostMapping
-    public Task createTask(@RequestBody Task task) {
-        return taskService.createTask(task);
+    public Task create(@RequestBody Task task) {
+        return taskService.create(task);
     }
 
-    @PutMapping("/{id}")
-    public Task updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
-        return taskService.updateTask(id, updatedTask);
+    @PatchMapping("/{id}")
+    public Task update(@PathVariable Long id, @RequestBody Task task) {
+        return taskService.update(id, task);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable Long id) {
-        taskService.deleteTask(id);
+    public void delete(@PathVariable Long id) {
+        taskService.delete(id);
     }
 }

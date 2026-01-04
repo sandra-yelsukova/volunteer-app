@@ -1,35 +1,29 @@
 package com.volunteer.volunteer_app_backend.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.time.Instant;
 
-@Entity
-@Table(name = "projects")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Getter
 @Setter
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Project {
+@Entity
+@Table(name = "volunteer_groups")
+public class VolunteerGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String title;
-
-    @Column(name = "short_description")
-    private String shortDescription;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizer_id")
+    @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
 
     @Column(name = "created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

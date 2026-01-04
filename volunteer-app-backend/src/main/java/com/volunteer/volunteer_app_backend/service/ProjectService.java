@@ -1,44 +1,105 @@
 package com.volunteer.volunteer_app_backend.service;
 
 import com.volunteer.volunteer_app_backend.model.Project;
+import com.volunteer.volunteer_app_backend.model.User;
 import com.volunteer.volunteer_app_backend.repository.ProjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.volunteer.volunteer_app_backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectService {
 
-    @Autowired
-    private ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
-    public List<Project> getAllProjects() {
+    public List<Project> getAll() {
         return projectRepository.findAll();
     }
 
-    public Optional<Project> getProjectById(Long id) {
-        return projectRepository.findById(id);
+    public Project getById(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
     }
 
-    public Project createProject(Project project) {
+    public Project create(Project project) {
+
+        if (project.getTitle() != null) {
+            project.setTitle(project.getTitle().trim());
+        }
+
+        project.setCreatedAt(Instant.now());
+
+        attachOrganizerIfPresent(project);
+
         return projectRepository.save(project);
     }
 
-    public Project updateProject(Long id, Project updatedProject) {
-        return projectRepository.findById(id)
-                .map(project -> {
-                    project.setTitle(updatedProject.getTitle());
-                    project.setDescription(updatedProject.getDescription());
-                    project.setStartDate(updatedProject.getStartDate());
-                    project.setEndDate(updatedProject.getEndDate());
-                    return projectRepository.save(project);
-                })
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+    public Project update(Long id, Project updated) {
+        Project existing = projectRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Project not found"
+                        )
+                );
+
+        if (updated.getTitle() != null) {
+            existing.setTitle(updated.getTitle());
+        }
+
+        if (updated.getShortDescription() != null) {
+            existing.setShortDescription(updated.getShortDescription());
+        }
+
+        if (updated.getDescription() != null) {
+            existing.setDescription(updated.getDescription());
+        }
+
+        if (updated.getOrganizer() != null) {
+            attachOrganizer(updated);
+            existing.setOrganizer(updated.getOrganizer());
+        }
+
+        return projectRepository.save(existing);
     }
 
-    public void deleteProject(Long id) {
+    public void delete(Long id) {
+        if (!projectRepository.existsById(id)) {
+            throw new IllegalArgumentException("Project not found: " + id);
+        }
         projectRepository.deleteById(id);
+    }
+
+    private void attachOrganizerIfPresent(Project project) {
+        User org = project.getOrganizer();
+        if (org == null || org.getId() == null) return;
+
+        User managedOrganizer = userRepository.findById(org.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Organizer not found: " + org.getId()));
+
+        project.setOrganizer(managedOrganizer);
+    }
+
+    private void attachOrganizer(Project project) {
+        if (project.getOrganizer() == null || project.getOrganizer().getId() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Organizer.id is required"
+            );
+        }
+
+        User organizer = userRepository.findById(project.getOrganizer().getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Organizer not found: " + project.getOrganizer().getId()
+                ));
+
+        project.setOrganizer(organizer);
     }
 }

@@ -1,43 +1,62 @@
 package com.volunteer.volunteer_app_backend.controller;
 
 import com.volunteer.volunteer_app_backend.model.Project;
+import com.volunteer.volunteer_app_backend.model.User;
 import com.volunteer.volunteer_app_backend.service.ProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.volunteer.volunteer_app_backend.service.ProjectParticipantService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/projects")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ProjectController {
 
-    @Autowired
-    private ProjectService projectService;
+    private final ProjectService projectService;
+    private final ProjectParticipantService participantService;
 
     @GetMapping
-    public List<Project> getAllProjects() {
-        return projectService.getAllProjects();
+    public List<Project> getAll() {
+        return projectService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Optional<Project> getProjectById(@PathVariable Long id) {
-        return projectService.getProjectById(id);
+    public Project getById(@PathVariable Long id) {
+        return projectService.getById(id);
     }
 
     @PostMapping
-    public Project createProject(@RequestBody Project project) {
-        return projectService.createProject(project);
+    public Project create(@RequestBody Project project) {
+        return projectService.create(project);
     }
 
-    @PutMapping("/{id}")
-    public Project updateProject(@PathVariable Long id, @RequestBody Project updatedProject) {
-        return projectService.updateProject(id, updatedProject);
+    @PatchMapping("/{id}")
+    public Project update(@PathVariable Long id, @RequestBody Project updated) {
+        return projectService.update(id, updated);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteProject(@PathVariable Long id) {
-        projectService.deleteProject(id);
+    public void delete(@PathVariable Long id) {
+        projectService.delete(id);
+    }
+
+    @PostMapping("/{projectId}/participants/{userId}")
+    public void addParticipant(@PathVariable Long projectId,
+                               @PathVariable Long userId) {
+        participantService.addParticipant(projectId, userId);
+    }
+
+    @DeleteMapping("/{projectId}/participants/{userId}")
+    public void removeParticipant(@PathVariable Long projectId,
+                                  @PathVariable Long userId) {
+        participantService.removeParticipant(projectId, userId);
+    }
+
+    @GetMapping("/{projectId}/participants")
+    public List<User> getParticipants(@PathVariable Long projectId) {
+        return participantService.getParticipants(projectId);
     }
 }

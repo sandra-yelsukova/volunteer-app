@@ -2,43 +2,95 @@ package com.volunteer.volunteer_app_backend.service;
 
 import com.volunteer.volunteer_app_backend.model.User;
 import com.volunteer.volunteer_app_backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Optional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    public List<User> getAllUsers() {
+    public List<User> getAll() {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found"
+                ));
     }
 
-    public User createUser(User user) {
+    public User save(User user) {
+        if (user.getEmail() == null
+                || user.getName() == null
+                || user.getSurname() == null
+                || user.getPasswordHash() == null
+                || user.getRole() == null) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "email, name, surname, passwordHash and role are required"
+            );
+        }
+
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Email already exists"
+            );
+        }
+
+        user.setCreatedAt(java.time.LocalDateTime.now());
         return userRepository.save(user);
     }
 
-    public User updateUser(Long id, User updatedUser) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setName(updatedUser.getName());
-                    user.setEmail(updatedUser.getEmail());
-                    user.setPassword(updatedUser.getPassword());
-                    user.setRole(updatedUser.getRole());
-                    return userRepository.save(user);
-                })
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public void delete(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found"
+            );
+        }
+        userRepository.deleteById(id);
     }
 
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public User update(Long id, User updated) {
+        User existing = getById(id);
+
+        if (updated.getEmail() != null) {
+            existing.setEmail(updated.getEmail());
+        }
+
+        if (updated.getName() != null) {
+            existing.setName(updated.getName());
+        }
+
+        if (updated.getSurname() != null) {
+            existing.setSurname(updated.getSurname());
+        }
+
+        if (updated.getPatronymic() != null) {
+            existing.setPatronymic(updated.getPatronymic());
+        }
+
+        if (updated.getPhone() != null) {
+            existing.setPhone(updated.getPhone());
+        }
+
+        if (updated.getPasswordHash() != null) {
+            existing.setPasswordHash(updated.getPasswordHash());
+        }
+
+        if (updated.getRole() != null) {
+            existing.setRole(updated.getRole());
+        }
+
+        return userRepository.save(existing);
     }
 }
