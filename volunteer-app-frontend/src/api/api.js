@@ -35,3 +35,7 @@ export function createProject(data) {
 export function getProjectById(id) {
   return request(`/projects/${id}`);
 }
+
+export function getTasks() {
+  return request('/tasks');
+}
