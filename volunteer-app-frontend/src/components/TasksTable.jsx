@@ -1,5 +1,7 @@
 import { DataGrid } from '@mui/x-data-grid';
 import { Box, Chip, Link } from '@mui/material';
+import { ruRU } from '@mui/x-data-grid/locales';
+
 
 export default function TasksTable({ tasks }) {
   const PRIORITY_LABELS = {
@@ -8,14 +10,21 @@ export default function TasksTable({ tasks }) {
     LOW: 'НИЗКИЙ',
   };
 
+  const PRIORITY_ORDER = {
+    HIGH: 1,
+    MEDIUM: 2,
+    LOW: 3,
+  };
+
   const STATUS_LABELS = {
     OPEN: 'ОЖИДАЕТ',
     IN_PROGRESS: 'В ПРОЦЕССЕ',
     DONE: 'ЗАВЕРШЕНО',
   };
 
-  const formatDateDDMMYYYY = (value) => {
+  const formatDateDDMMYYYYHHMM = (value) => {
     if (!value) return '—';
+
     const date = new Date(value);
     if (isNaN(date)) return '—';
 
@@ -23,7 +32,10 @@ export default function TasksTable({ tasks }) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
 
-    return `${day}.${month}.${year}`;
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
   };
 
   const renderPriorityChip = (priority) => {
@@ -85,16 +97,23 @@ export default function TasksTable({ tasks }) {
       headerName: 'Проект',
       width: 220,
       sortable: true,
+
+      valueGetter: (_value, row) => {
+        return row?.project?.title ?? '';
+      },
+
       renderCell: (params) => {
         const project = params.row?.project;
         if (!project) return '—';
-        return <Link href={`/projects/${project.id}`}>{project.title}</Link>;
+
+        return (
+          <Link href={`/projects/${project.id}`}>
+            {project.title}
+          </Link>
+        );
       },
-      sortComparator: (v1, v2, param1, param2) => {
-        const a = param1?.row?.project?.title ?? '';
-        const b = param2?.row?.project?.title ?? '';
-        return a.localeCompare(b, 'ru');
-      },
+
+      sortComparator: (a, b) => (a ?? '').localeCompare(b ?? '', 'ru'),
     },
 
     {
@@ -118,7 +137,29 @@ export default function TasksTable({ tasks }) {
       headerName: 'Приоритет',
       width: 140,
       sortable: true,
-      renderCell: (params) => renderPriorityChip(params.row?.priority),
+
+      sortComparator: (v1, v2) =>
+        (PRIORITY_ORDER[v1] ?? 0) - (PRIORITY_ORDER[v2] ?? 0),
+
+      renderCell: (params) => {
+        const priority = params.value;
+        if (!priority) return '—';
+
+        const color =
+          priority === 'HIGH'
+            ? 'error'
+            : priority === 'MEDIUM'
+            ? 'warning'
+            : 'default';
+
+        return (
+          <Chip
+            label={PRIORITY_LABELS[priority] ?? priority}
+            color={color}
+            size="small"
+          />
+        );
+      },
     },
 
     {
@@ -137,13 +178,19 @@ export default function TasksTable({ tasks }) {
     {
       field: 'updatedAt',
       headerName: 'Обновлено',
-      width: 140,
+      width: 170,
       sortable: true,
-      renderCell: (params) => formatDateDDMMYYYY(params.row?.updatedAt),
-      sortComparator: (v1, v2, param1, param2) => {
-        const a = new Date(param1?.row?.updatedAt ?? 0).getTime();
-        const b = new Date(param2?.row?.updatedAt ?? 0).getTime();
-        return a - b;
+
+      renderCell: (params) => formatDateDDMMYYYYHHMM(params.row?.updatedAt),
+
+      sortComparator: (v1, v2) => {
+        const toTime = (v) => {
+          if (!v) return -Infinity;
+          const t = new Date(v).getTime();
+          return Number.isFinite(t) ? t : -Infinity;
+        };
+
+        return toTime(v1) - toTime(v2);
       },
     },
 
@@ -152,6 +199,21 @@ export default function TasksTable({ tasks }) {
       headerName: 'Исполнитель',
       width: 220,
       sortable: true,
+
+      valueGetter: (_value, row) => {
+        if (!row) return '';
+
+        if (row.assigneeType === 'USER' && row.assigneeUser) {
+          return `${row.assigneeUser.name ?? ''} ${row.assigneeUser.surname ?? ''}`.trim();
+        }
+
+        if (row.assigneeType === 'GROUP' && row.assigneeGroup) {
+          return row.assigneeGroup.name ?? '';
+        }
+
+        return '';
+      },
+
       renderCell: (params) => {
         const row = params.row;
         if (!row) return '—';
@@ -169,41 +231,35 @@ export default function TasksTable({ tasks }) {
 
         return '—';
       },
-      sortComparator: (v1, v2, param1, param2) => {
-        const r1 = param1?.row;
-        const r2 = param2?.row;
 
-        const a =
-          r1?.assigneeType === 'USER'
-            ? `${r1?.assigneeUser?.name ?? ''} ${r1?.assigneeUser?.surname ?? ''}`.trim()
-            : r1?.assigneeType === 'GROUP'
-            ? r1?.assigneeGroup?.name ?? ''
-            : '';
-
-        const b =
-          r2?.assigneeType === 'USER'
-            ? `${r2?.assigneeUser?.name ?? ''} ${r2?.assigneeUser?.surname ?? ''}`.trim()
-            : r2?.assigneeType === 'GROUP'
-            ? r2?.assigneeGroup?.name ?? ''
-            : '';
-
-        return a.localeCompare(b, 'ru');
-      },
+      sortComparator: (a, b) => (a ?? '').localeCompare(b ?? '', 'ru'),
     },
   ];
 
   return (
-    <Box sx={{ height: 600, width: '100%' }}>
+    <Box sx={{ width: '100%' }}>
       <DataGrid
         rows={tasks ?? []}
         columns={columns}
         getRowId={(row) => row.id}
-        pageSizeOptions={[10, 20, 50, 100]}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 100, page: 0 } },
-          sorting: { sortModel: [{ field: 'updatedAt', sort: 'desc' }] },
-        }}
         disableRowSelectionOnClick
+        pageSizeOptions={[10, 20, 50]}
+        sortingMode="client"
+        localeText={ruRU.components.MuiDataGrid.defaultProps.localeText}
+
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 10,
+              page: 0,
+            },
+          },
+          sorting: {
+            sortModel: [
+              { field: 'updatedAt', sort: 'desc' },
+            ],
+          },
+        }}
       />
     </Box>
   );
