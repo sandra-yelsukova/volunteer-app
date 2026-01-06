@@ -29,6 +29,17 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
+    public List<Task> getByProjectId(Long projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Project not found: " + projectId
+            );
+        }
+
+        return taskRepository.findByProjectId(projectId);
+    }
+
     public Task getById(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));

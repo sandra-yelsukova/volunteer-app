@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  CircularProgress,
-} from '@mui/material';
+import { Box, Typography, CircularProgress, Stack, Pagination, } from '@mui/material';
 import { getProjects } from '../api/api';
 import ProjectCard from '../components/ProjectCard';
+
+const ITEMS_PER_PAGE = 5;
 
 export default function ProjectListPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     getProjects()
@@ -41,19 +39,30 @@ export default function ProjectListPage() {
     );
   }
 
+  const totalPages = Math.ceil(projects.length / ITEMS_PER_PAGE);
+
+  const paginatedProjects = projects.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
         Проекты
       </Typography>
 
-      <Grid container spacing={2}>
-        {projects.map(project => (
-          <Grid item xs={12} md={6} lg={4} key={project.id}>
-            <ProjectCard project={project} />
-          </Grid>
+      <Stack spacing={2}>
+        {paginatedProjects.map(project => (
+          <ProjectCard key={project.id} project={project} />
         ))}
-      </Grid>
+      </Stack>
+
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color="primary"/>
+        </Box>
+      )}
     </Box>
   );
 }

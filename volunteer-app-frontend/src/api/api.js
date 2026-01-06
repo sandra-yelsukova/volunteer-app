@@ -39,3 +39,43 @@ export function getProjectById(id) {
 export function getTasks() {
   return request('/tasks');
 }
+
+export function getTasksByProjectId(projectId) {
+  return request(`/tasks/by-project/${projectId}`);
+}
+
+export function getProjectParticipants(projectId) {
+  return request(`/projects/${projectId}/participants`);
+}
+
+export async function login(email, password) {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    throw new Error('Неверный email или пароль');
+  }
+
+  return res.json();
+}
+
+export async function register(data) {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error('Ошибка регистрации');
+  }
+
+  return res.json();
+}
+
+export function getUserById(id) {
+  return request(`/users/${id}`);
+}

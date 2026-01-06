@@ -1,7 +1,11 @@
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { Outlet, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function MainLayout() {
+  const { auth } = useAuth();
+  const isAuth = Boolean(auth);
+
   return (
     <>
       <AppBar position="static" sx={{ borderRadius: 3, overflow: 'hidden', height: 72 }}>
@@ -23,9 +27,15 @@ export default function MainLayout() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Button color="inherit" component={Link} sx={{ fontSize: '1rem' }} to="/profile">
-            Профиль
-          </Button>
+          {isAuth ? (
+            <Button color="inherit" component={Link} to="/profile" sx={{ fontSize: '1rem' }}>
+              Профиль
+            </Button>
+          ) : (
+            <Button color="inherit" component={Link} to="/login" sx={{ fontSize: '1rem' }}>
+              Вход
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 

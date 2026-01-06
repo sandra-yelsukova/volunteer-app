@@ -12,7 +12,7 @@ export default function DashboardPage() {
 
   return (
     <Box p={3}>
-      <Typography variant="h4" gutterBottom>Дашборд</Typography>
+      <Typography variant="h4" gutterBottom>Задачи</Typography>
       <TasksTable tasks={tasks} />
     </Box>
   );

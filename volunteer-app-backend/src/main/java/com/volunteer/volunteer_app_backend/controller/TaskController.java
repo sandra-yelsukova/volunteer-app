@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
@@ -18,6 +17,11 @@ public class TaskController {
     @GetMapping
     public List<Task> getAll() {
         return taskService.getAll();
+    }
+
+    @GetMapping("/by-project/{projectId}")
+    public List<Task> getByProject(@PathVariable Long projectId) {
+        return taskService.getByProjectId(projectId);
     }
 
     @GetMapping("/{id}")
