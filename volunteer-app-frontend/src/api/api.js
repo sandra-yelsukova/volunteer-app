@@ -79,3 +79,20 @@ export async function register(data) {
 export function getUserById(id) {
   return request(`/users/${id}`);
 }
+
+export async function getTaskById(id) {
+  const res = await fetch(`http://localhost:8080/api/tasks/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(localStorage.getItem('token') && {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }),
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Ошибка загрузки задачи');
+  }
+
+  return res.json();
+}
