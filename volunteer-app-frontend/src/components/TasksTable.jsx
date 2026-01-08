@@ -82,7 +82,7 @@ export default function TasksTable({ tasks }) {
   const columns = [
     {
       field: 'id',
-      headerName: 'ID',
+      headerName: '№',
       width: 80,
       sortable: true,
       renderCell: (params) => {

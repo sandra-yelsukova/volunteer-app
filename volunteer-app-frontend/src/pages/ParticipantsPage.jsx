@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography } from '@mui/material';
+import { Alert, Box, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography, Link as MuiLink } from '@mui/material';
 import { getGroupsByOrganizer, getGroupMembers, getOrganizerParticipants } from '../api/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 function getCurrentUserId() {
   const raw = localStorage.getItem('userId');
@@ -153,7 +153,11 @@ export default function ParticipantsPage() {
                               members.map((user) => (
                                 <ListItem key={user.id} disableGutters>
                                   <ListItemText
-                                    primary={getUserFullName(user) || `Пользователь #${user.id}`}
+                                    primary={
+                                      <MuiLink component={RouterLink} to={`/users/${user.id}`} underline="hover" onClick={(e) => e.stopPropagation()}>
+                                        {getUserFullName(user)}
+                                      </MuiLink>
+                                    }
                                     secondary={user.email || ''}
                                   />
                                 </ListItem>
@@ -192,7 +196,11 @@ export default function ParticipantsPage() {
                   {participants.map((user) => (
                     <ListItem key={user.id} divider disableGutters>
                       <ListItemText
-                        primary={getUserFullName(user) || `Пользователь #${user.id}`}
+                        primary={
+                          <MuiLink component={RouterLink} to={`/users/${user.id}`} underline="hover">
+                            {getUserFullName(user)}
+                          </MuiLink>
+                        }
                         secondary={user.email || ''}
                       />
                     </ListItem>

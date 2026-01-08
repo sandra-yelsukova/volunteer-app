@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText } from '@mui/material';
+import { useParams, Link as RouterLink } from 'react-router-dom';
+import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink } from '@mui/material';
 import { getProjectById, getTasksByProjectId, getProjectParticipants } from '../api/api';
 import TasksTable from '../components/TasksTable';
 
@@ -89,8 +89,10 @@ export default function ProjectPage() {
 
             <Typography variant="body2" color="text.secondary">
               <strong>Организатор:</strong>{' '}
-              {project.organizer.surname} {project.organizer.name}{' '}
-              {project.organizer.patronymic}
+              <MuiLink component={RouterLink} to={`/users/${project.organizer.id}`} underline="hover">
+                {project.organizer.surname} {project.organizer.name}{' '}
+                {project.organizer.patronymic}
+              </MuiLink>
             </Typography>
 
             <Typography variant="body2" color="text.secondary">
@@ -100,32 +102,43 @@ export default function ProjectPage() {
           </CardContent>
         </Card>
 
-        <Card sx={{ display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
-          <CardContent sx={{ overflowY: 'auto' }}>
+        <Card sx={{ height: 420, display: 'flex', flexDirection: 'column' }}>
+          <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <Typography variant="h6" gutterBottom>
               Участники проекта
             </Typography>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} >
+              Всего участников: {participants.length}
+            </Typography>
+
+            <Divider sx={{ mb: 1.5 }} />
 
             {participantsLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                 <CircularProgress size={20} />
               </Box>
-            ) : participants.length ? (
-              <List dense>
-                {participants.map(user => (
-                  <ListItem key={user.id}>
+            ) : participants.length === 0 ? (
+              <Typography color="text.secondary">
+                Участники отсутствуют
+              </Typography>
+            ) : (
+              <List disablePadding sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                {participants.map((user) => (
+                  <ListItem key={user.id} divider disableGutters>
                     <ListItemText
-                      primary={`${user.surname} ${user.name}`}
+                      primary={
+                        <MuiLink component={RouterLink} to={`/users/${user.id}`} underline="hover">
+                          {user.surname} {user.name}
+                          {user.patronymic ? ` ${user.patronymic}` : ''}
+                        </MuiLink>
+                      }
+                      secondary={user.email || ''}
                     />
                   </ListItem>
                 ))}
               </List>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                Участники отсутствуют
-              </Typography>
             )}
-
           </CardContent>
         </Card>
       </Box>

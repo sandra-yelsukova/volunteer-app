@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Alert, Box, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography, Button } from '@mui/material';
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Alert, Box, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography, Button, Link as MuiLink } from '@mui/material';
 import { getGroupById, getGroupMembers } from '../api/api';
 
 function getUserFullName(user) {
@@ -95,7 +95,9 @@ export default function GroupPage() {
                   Организатор
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 1.5 }}>
-                  {getUserFullName(group.organizer)}
+                  <MuiLink component={RouterLink} to={`/users/${group.organizer.id}`} underline="hover">
+                    {getUserFullName(group.organizer)}
+                  </MuiLink>
                 </Typography>
 
                 <Typography variant="body2" color="text.secondary">
@@ -126,7 +128,11 @@ export default function GroupPage() {
                     {members.map((user) => (
                       <ListItem key={user.id} divider disableGutters>
                         <ListItemText
-                          primary={getUserFullName(user)}
+                          primary={
+                            <MuiLink component={RouterLink} to={`/users/${user.id}`} underline="hover">
+                              {getUserFullName(user)}
+                            </MuiLink>
+                          }
                           secondary={user.email}
                         />
                       </ListItem>

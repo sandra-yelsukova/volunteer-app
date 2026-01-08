@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import GroupPage from './pages/GroupPage';
+import UserPage from './pages/UserPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/groups/:groupId" element={<GroupPage />} />
+          <Route path="/users/:id" element={<UserPage />} />
         </Route>
       </Route>
 
