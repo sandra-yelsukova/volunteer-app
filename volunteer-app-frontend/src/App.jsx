@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import GroupPage from './pages/GroupPage';
 import UserPage from './pages/UserPage';
+import ProjectCreatePage from './pages/ProjectCreatePage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/groups/:groupId" element={<GroupPage />} />
           <Route path="/users/:id" element={<UserPage />} />
+          <Route path="/projects/create" element={<ProjectCreatePage />} />
         </Route>
       </Route>
 

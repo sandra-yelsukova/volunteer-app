@@ -1,5 +1,17 @@
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, Typography, Box, Link as MuiLink } from '@mui/material';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+
+function getUserFullName(user) {
+  if (!user) return '';
+
+  const parts = [
+    user.surname,
+    user.name,
+    user.patronymic,
+  ].filter(Boolean);
+
+  return parts.join(' ');
+}
 
 export default function ProjectCard({ project }) {
   const navigate = useNavigate();
@@ -30,7 +42,9 @@ export default function ProjectCard({ project }) {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, }}>
           <Typography variant="body2">
             <strong>Организатор:</strong>{' '}
-            {organizer.surname} {organizer.name} {organizer.patronymic}
+            <MuiLink component={RouterLink} to={`/users/${organizer.id}`} underline="hover" onClick={(e) => e.stopPropagation()}>
+              {getUserFullName(organizer)}
+            </MuiLink>
           </Typography>
 
           <Typography variant="body2" color="text.secondary">

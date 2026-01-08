@@ -25,11 +25,19 @@ export function getProjects() {
   return request('/projects');
 }
 
-export function createProject(data) {
-  return request('/projects', {
+export async function createProject(data) {
+  const response = await fetch(`${API_URL}/projects`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json', },
     body: JSON.stringify(data),
   });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || 'Ошибка создания проекта');
+  }
+
+  return response.json();
 }
 
 export function getProjectById(id) {

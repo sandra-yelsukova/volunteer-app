@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, CircularProgress, Stack, Pagination, } from '@mui/material';
+import { Box, Typography, CircularProgress, Stack, Pagination, Grid, Button } from '@mui/material';
 import { getProjects } from '../api/api';
 import ProjectCard from '../components/ProjectCard';
+import AddIcon from '@mui/icons-material/Add';
+import { useNavigate } from 'react-router-dom';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -10,6 +12,7 @@ export default function ProjectListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getProjects()
@@ -49,9 +52,15 @@ export default function ProjectListPage() {
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: 2, }}>
       <Box sx={{ width: '100%', maxWidth: 1000 }}>
-        <Typography variant="h4" align="center" gutterBottom sx={{ mt: 2, mb: 3 }}>
-          Проекты
-        </Typography>
+        <Box sx={{ width: '100%', maxWidth: 900, display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2, mb: 3, mx: 'auto' }}>
+          <Typography variant="h4">
+            Проекты
+          </Typography>
+
+          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/projects/create')}>
+            Добавить проект
+          </Button>
+        </Box>
 
         <Stack spacing={2} alignItems="center">
           {paginatedProjects.map(project => (
