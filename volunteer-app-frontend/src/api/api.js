@@ -105,6 +105,18 @@ export function getGroupMembers(groupId) {
   return request(`/groups/${groupId}/members`);
 }
 
+export function getGroupById(groupId) {
+  return request(`/groups/${groupId}`);
+}
+
+
 export function getOrganizerParticipants(organizerId) {
   return request(`/projects/participants/by-organizer/${organizerId}`);
+}
+
+export function updateUser(id, data) {
+  return request(`/users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
 }

@@ -10,6 +10,7 @@ import ReportsPage from './pages/ReportsPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import GroupPage from './pages/GroupPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/participants" element={<ParticipantsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/groups/:groupId" element={<GroupPage />} />
         </Route>
       </Route>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Box, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { getGroupsByOrganizer, getGroupMembers, getOrganizerParticipants } from '../api/api';
+import { useNavigate } from 'react-router-dom';
 
 function getCurrentUserId() {
   const raw = localStorage.getItem('userId');
@@ -31,6 +32,8 @@ export default function ParticipantsPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!organizerId) {
@@ -98,7 +101,7 @@ export default function ParticipantsPage() {
     <Box sx={{ width: '100%', px: 3 }}>
       <Grid container spacing={3} wrap="nowrap" alignItems="flex-start">
         <Grid item xs>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
             Группы волонтёров
           </Typography>
 
@@ -118,7 +121,17 @@ export default function ParticipantsPage() {
 
                   return (
                     <Grid item key={group.id}>
-                      <Card sx={{ width: 320, height: 290, display: 'flex', flexDirection: 'column', }}>
+                      <Card onClick={() => navigate(`/groups/${group.id}`)}
+                        sx={{
+                          width: 320,
+                          height: 290,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          cursor: 'pointer',
+                          transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+                          '&:hover': { boxShadow: 6, transform: 'translateY(-2px)' },
+                        }}
+                      >
                         <CardContent
                           sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, }}>
                           <Typography variant="subtitle1" fontWeight={700}>
@@ -158,11 +171,11 @@ export default function ParticipantsPage() {
         </Grid>
 
         <Grid item sx={{ width: 420, flexShrink: 0 }}>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
             Участники проектов
           </Typography>
 
-          <Card sx={{ height: 650, display: 'flex', flexDirection: 'column', }}>
+          <Card sx={{ height: 640, display: 'flex', flexDirection: 'column', }}>
             <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, }}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Всего участников: {participants.length}
