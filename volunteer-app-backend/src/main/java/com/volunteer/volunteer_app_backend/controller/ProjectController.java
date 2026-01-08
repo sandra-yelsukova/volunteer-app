@@ -58,4 +58,9 @@ public class ProjectController {
     public List<User> getParticipants(@PathVariable Long projectId) {
         return participantService.getParticipants(projectId);
     }
+
+    @GetMapping("/participants/by-organizer/{organizerId}")
+    public List<User> getAllParticipantsByOrganizer(@PathVariable Long organizerId) {
+        return projectService.getAllParticipantsByOrganizer(organizerId);
+    }
 }

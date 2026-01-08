@@ -59,4 +59,9 @@ public class VolunteerGroupController {
     public List<User> getMembers(@PathVariable Long groupId) {
         return groupMemberService.getMembers(groupId);
     }
+
+    @GetMapping("/by-organizer/{organizerId}")
+    public List<VolunteerGroup> getByOrganizer(@PathVariable Long organizerId) {
+        return groupService.getByOrganizerId(organizerId);
+    }
 }

@@ -102,4 +102,15 @@ public class ProjectService {
 
         project.setOrganizer(organizer);
     }
+
+    public List<User> getAllParticipantsByOrganizer(Long organizerId) {
+        if (organizerId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "organizerId is required"
+            );
+        }
+
+        return projectRepository.findAllParticipantsByOrganizerId(organizerId);
+    }
 }

@@ -100,4 +100,15 @@ public class VolunteerGroupService {
 
         group.setOrganizer(organizer);
     }
+
+    public List<VolunteerGroup> getByOrganizerId(Long organizerId) {
+        if (organizerId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "organizerId is required"
+            );
+        }
+
+        return groupRepository.findByOrganizerId(organizerId);
+    }
 }

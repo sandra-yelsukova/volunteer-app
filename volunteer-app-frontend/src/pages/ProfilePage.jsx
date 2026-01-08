@@ -56,7 +56,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <Box sx={{ maxWidth: 900 }}>
+    <Box sx={{ maxWidth: 1000 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, }}>
         <Typography variant="h4">Профиль</Typography>
 

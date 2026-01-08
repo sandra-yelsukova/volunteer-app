@@ -96,3 +96,15 @@ export async function getTaskById(id) {
 
   return res.json();
 }
+
+export function getGroupsByOrganizer(organizerId) {
+  return request(`/groups/by-organizer/${organizerId}`);
+}
+
+export function getGroupMembers(groupId) {
+  return request(`/groups/${groupId}/members`);
+}
+
+export function getOrganizerParticipants(organizerId) {
+  return request(`/projects/participants/by-organizer/${organizerId}`);
+}
