@@ -40,6 +40,23 @@ export async function createProject(data) {
   return response.json();
 }
 
+export async function createTask(data) {
+  const response = await fetch(`${API_URL}/tasks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || 'Ошибка создания задачи');
+  }
+
+  return response.json();
+}
+
 export function getProjectById(id) {
   return request(`/projects/${id}`);
 }

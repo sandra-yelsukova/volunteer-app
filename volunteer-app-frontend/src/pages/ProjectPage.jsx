@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink, Button, TextField } from '@mui/material';
 import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject } from '../api/api';
 import TasksTable from '../components/TasksTable';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
 
 export default function ProjectPage() {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export default function ProjectPage() {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -213,11 +215,16 @@ export default function ProjectPage() {
         </Card>
       </Box>
 
-      <Box>
-        <Typography variant="h5" gutterBottom>
-          Задачи проекта
-        </Typography>
+      <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }} >
+          <Typography variant="h5">
+            Задачи проекта
+          </Typography>
 
+          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate(`/projects/${project.id}/tasks/create`)} >
+            Добавить задачу
+          </Button>
+        </Box>
         {tasksLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <CircularProgress size={24} />
@@ -225,7 +232,6 @@ export default function ProjectPage() {
         ) : (
           <TasksTable tasks={tasks} />
         )}
-
       </Box>
     </Box>
   );
