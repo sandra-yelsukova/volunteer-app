@@ -33,7 +33,7 @@ export default function ProjectCreatePage() {
       setLoading(true);
       setError('');
 
-      await createProject({
+      const createdProject = await createProject({
         title,
         shortDescription,
         description,
@@ -42,7 +42,7 @@ export default function ProjectCreatePage() {
         },
       });
 
-      navigate('/projects');
+      navigate(`/projects/${createdProject.id}`);
     } catch (e) {
       setError(e.message || 'Ошибка создания проекта');
     } finally {

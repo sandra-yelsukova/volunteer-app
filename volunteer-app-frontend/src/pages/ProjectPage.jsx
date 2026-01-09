@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
-import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink } from '@mui/material';
-import { getProjectById, getTasksByProjectId, getProjectParticipants } from '../api/api';
+import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink, Button, TextField } from '@mui/material';
+import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject } from '../api/api';
 import TasksTable from '../components/TasksTable';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 
 export default function ProjectPage() {
   const { id } = useParams();
-
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,6 +16,9 @@ export default function ProjectPage() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [participants, setParticipants] = useState([]);
   const [participantsLoading, setParticipantsLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -23,6 +28,11 @@ export default function ProjectPage() {
     getProjectById(id)
       .then(data => {
         setProject(data);
+        setForm({
+          title: data.title || '',
+          shortDescription: data.shortDescription || '',
+          description: data.description || '',
+        });
         setLoading(false);
       })
       .catch(err => {
@@ -52,6 +62,34 @@ export default function ProjectPage() {
       });
   }, [id]);
 
+  const handleChange = (field) => (e) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      const updated = await updateProject(project.id, form);
+
+      setProject(updated);
+      setEditMode(false);
+    } catch (e) {
+      alert(e.message || 'Ошибка сохранения проекта');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setForm({
+      title: project.title || '',
+      shortDescription: project.shortDescription || '',
+      description: project.description || '',
+    });
+    setEditMode(false);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -73,21 +111,53 @@ export default function ProjectPage() {
       <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2, mb: 3, alignItems: 'stretch', }}>
         <Card>
           <CardContent>
-            <Typography variant="h4" gutterBottom>
-              {project.title}
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              {!editMode ? (
+                <Typography variant="h4">
+                  {project.title}
+                </Typography>
+              ) : (
+                <TextField value={form.title} onChange={handleChange('title')} fullWidth label="Название проекта" sx={{ mr: 2 }}/>
+              )}
 
-            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-              {project.shortDescription}
-            </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {!editMode ? (
+                  <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)}>
+                    Редактировать
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
+                      Сохранить
+                    </Button>
+
+                    <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleCancel}>
+                      Отмена
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </Box>
+
+            {!editMode ? (
+              <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                {project.shortDescription}
+              </Typography>
+            ) : (
+              <TextField value={form.shortDescription} onChange={handleChange('shortDescription')} fullWidth label="Краткое описание" sx={{ mb: 2 }}/>
+            )}
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {project.description}
-            </Typography>
+            {!editMode ? (
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {project.description}
+              </Typography>
+            ) : (
+              <TextField value={form.description} onChange={handleChange('description')} fullWidth multiline minRows={4} label="Описание"/>
+            )}
 
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               <strong>Организатор:</strong>{' '}
               <MuiLink component={RouterLink} to={`/users/${project.organizer.id}`} underline="hover">
                 {project.organizer.surname} {project.organizer.name}{' '}

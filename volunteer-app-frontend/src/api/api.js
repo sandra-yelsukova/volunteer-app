@@ -128,3 +128,10 @@ export function updateUser(id, data) {
     body: JSON.stringify(data),
   });
 }
+
+export function updateProject(id, data) {
+  return request(`/projects/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}

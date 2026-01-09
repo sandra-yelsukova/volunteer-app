@@ -44,7 +44,14 @@ export default function ProjectListPage() {
 
   const totalPages = Math.ceil(projects.length / ITEMS_PER_PAGE);
 
-  const paginatedProjects = projects.slice(
+  const sortedProjects = [...projects].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+
+    return dateB - dateA;
+  });
+
+  const paginatedProjects = sortedProjects.slice(
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
   );
