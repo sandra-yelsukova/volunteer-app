@@ -152,3 +152,10 @@ export function updateProject(id, data) {
     body: JSON.stringify(data),
   });
 }
+
+export function updateTask(id, data) {
+  return request(`/tasks/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
