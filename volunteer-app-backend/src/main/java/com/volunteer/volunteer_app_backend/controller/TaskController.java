@@ -24,6 +24,16 @@ public class TaskController {
         return taskService.getByProjectId(projectId);
     }
 
+    @GetMapping("/by-organizer/{organizerId}")
+    public List<Task> getByOrganizer(@PathVariable Long organizerId) {
+        return taskService.getByOrganizerId(organizerId);
+    }
+
+    @GetMapping("/by-participant/{userId}")
+    public List<Task> getByParticipant(@PathVariable Long userId) {
+        return taskService.getByParticipantId(userId);
+    }
+
     @GetMapping("/{id}")
     public Task getById(@PathVariable Long id) {
         return taskService.getById(id);

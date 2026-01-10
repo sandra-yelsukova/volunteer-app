@@ -22,6 +22,60 @@ public class ProjectService {
         return projectRepository.findAll();
     }
 
+    public List<Project> getByOrganizerId(Long organizerId) {
+        if (organizerId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "organizerId is required"
+            );
+        }
+
+        if (!userRepository.existsById(organizerId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found: " + organizerId
+            );
+        }
+
+        return projectRepository.findByOrganizerId(organizerId);
+    }
+
+    public List<Project> getByParticipantId(Long userId) {
+        if (userId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "userId is required"
+            );
+        }
+
+        if (!userRepository.existsById(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found: " + userId
+            );
+        }
+
+        return projectRepository.findByParticipantId(userId);
+    }
+
+    public List<Project> getByNonParticipantId(Long userId) {
+        if (userId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "userId is required"
+            );
+        }
+
+        if (!userRepository.existsById(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found: " + userId
+            );
+        }
+
+        return projectRepository.findByNonParticipantId(userId);
+    }
+
     public Project getById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));

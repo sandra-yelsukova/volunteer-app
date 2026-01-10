@@ -22,6 +22,21 @@ public class ProjectController {
         return projectService.getAll();
     }
 
+    @GetMapping("/by-organizer/{organizerId}")
+    public List<Project> getByOrganizer(@PathVariable Long organizerId) {
+        return projectService.getByOrganizerId(organizerId);
+    }
+
+    @GetMapping("/by-participant/{userId}")
+    public List<Project> getByParticipant(@PathVariable Long userId) {
+        return projectService.getByParticipantId(userId);
+    }
+
+    @GetMapping("/by-non-participant/{userId}")
+    public List<Project> getByNonParticipant(@PathVariable Long userId) {
+        return projectService.getByNonParticipantId(userId);
+    }
+
     @GetMapping("/{id}")
     public Project getById(@PathVariable Long id) {
         return projectService.getById(id);

@@ -40,6 +40,28 @@ public class TaskService {
         return taskRepository.findByProjectId(projectId);
     }
 
+    public List<Task> getByOrganizerId(Long organizerId) {
+        if (!userRepository.existsById(organizerId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found: " + organizerId
+            );
+        }
+
+        return taskRepository.findByProjectOrganizerId(organizerId);
+    }
+
+    public List<Task> getByParticipantId(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found: " + userId
+            );
+        }
+
+        return taskRepository.findByProjectParticipantId(userId);
+    }
+
     public Task getById(Long id) {
         return taskRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
