@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink, Button, TextField } from '@mui/material';
-import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject } from '../api/api';
+import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink, Button, TextField, IconButton, Alert } from '@mui/material';
+import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject, removeProjectParticipant } from '../api/api';
 import TasksTable from '../components/TasksTable';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -17,6 +17,8 @@ export default function ProjectPage() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [participants, setParticipants] = useState([]);
   const [participantsLoading, setParticipantsLoading] = useState(true);
+  const [participantsError, setParticipantsError] = useState('');
+  const [removingParticipantIds, setRemovingParticipantIds] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -26,6 +28,7 @@ export default function ProjectPage() {
     setLoading(true);
     setTasksLoading(true);
     setParticipantsLoading(true);
+    setParticipantsError('');
 
     getProjectById(id)
       .then(data => {
@@ -58,8 +61,9 @@ export default function ProjectPage() {
         setParticipants(data);
         setParticipantsLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
         setParticipants([]);
+        setParticipantsError(err?.message || 'Ошибка загрузки участников проекта');
         setParticipantsLoading(false);
       });
   }, [id]);
@@ -197,7 +201,27 @@ export default function ProjectPage() {
             ) : (
               <List disablePadding sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
                 {participants.map((user) => (
-                  <ListItem key={user.id} divider disableGutters>
+                  <ListItem key={user.id} divider disableGutters sx={{ overflowX: 'hidden' }}
+                    secondaryAction={(
+                      <IconButton edge="end" aria-label="Удалить участника проекта"
+                        onClick={async () => {
+                          try {
+                            setParticipantsError('');
+                            setRemovingParticipantIds((prev) => [...prev, user.id]);
+                            await removeProjectParticipant(project.id, user.id);
+                            setParticipants((prev) => prev.filter((participant) => participant.id !== user.id));
+                          } catch (e) {
+                            setParticipantsError(e.message || 'Ошибка удаления участника проекта');
+                          } finally {
+                            setRemovingParticipantIds((prev) => prev.filter((id) => id !== user.id));
+                          }
+                        }}
+                        disabled={removingParticipantIds.includes(user.id)}
+                      >
+                        <CloseIcon sx={{ mr: 2 }} />
+                      </IconButton>
+                    )}
+                  >
                     <ListItemText
                       primary={
                         <MuiLink component={RouterLink} to={`/users/${user.id}`} underline="hover">
@@ -210,6 +234,12 @@ export default function ProjectPage() {
                   </ListItem>
                 ))}
               </List>
+            )}
+
+            {participantsError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {participantsError}
+              </Alert>
             )}
           </CardContent>
         </Card>

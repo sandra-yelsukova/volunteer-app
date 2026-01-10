@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, CircularProgress, Stack, Pagination, Grid, Button, Alert } from '@mui/material';
-import { getProjects, getProjectsByOrganizerId, getProjectsByParticipantId, getProjectsByNonParticipantId } from '../api/api';
+import {
+  addProjectParticipant,
+  getProjects,
+  getProjectsByOrganizerId,
+  getProjectsByParticipantId,
+  getProjectsByNonParticipantId,
+  removeProjectParticipant,
+} from '../api/api';
 import ProjectCard from '../components/ProjectCard';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +21,8 @@ export default function ProjectListPage() {
   const [otherProjects, setOtherProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joiningIds, setJoiningIds] = useState(() => new Set());
+  const [leavingIds, setLeavingIds] = useState(() => new Set());
   const [page, setPage] = useState(1);
   const [otherPage, setOtherPage] = useState(1);
   const navigate = useNavigate();
@@ -76,6 +85,76 @@ export default function ProjectListPage() {
     };
   }, [auth]);
 
+  const handleJoinProject = async (projectId) => {
+    if (!auth?.userId) return;
+
+    setJoiningIds(prev => {
+      const next = new Set(prev);
+      next.add(projectId);
+      return next;
+    });
+    setError(null);
+
+    try {
+      await addProjectParticipant(projectId, auth.userId);
+      setOtherProjects(prev => {
+        const joinedProject = prev.find(project => project.id === projectId);
+        if (joinedProject) {
+          setMyProjects(prevMy => {
+            if (prevMy.some(project => project.id === projectId)) {
+              return prevMy;
+            }
+            return [joinedProject, ...prevMy];
+          });
+        }
+        return prev.filter(project => project.id !== projectId);
+      });
+    } catch (err) {
+      setError(err.message || 'Не удалось присоединиться к проекту');
+    } finally {
+      setJoiningIds(prev => {
+        const next = new Set(prev);
+        next.delete(projectId);
+        return next;
+      });
+    }
+  };
+
+  const handleLeaveProject = async (projectId) => {
+    if (!auth?.userId) return;
+
+    setLeavingIds(prev => {
+      const next = new Set(prev);
+      next.add(projectId);
+      return next;
+    });
+    setError(null);
+
+    try {
+      await removeProjectParticipant(projectId, auth.userId);
+      setMyProjects(prev => {
+        const leftProject = prev.find(project => project.id === projectId);
+        if (leftProject) {
+          setOtherProjects(prevOther => {
+            if (prevOther.some(project => project.id === projectId)) {
+              return prevOther;
+            }
+            return [leftProject, ...prevOther];
+          });
+        }
+        return prev.filter(project => project.id !== projectId);
+      });
+    } catch (err) {
+      setError(err.message || 'Не удалось выйти из проекта');
+    } finally {
+      setLeavingIds(prev => {
+        const next = new Set(prev);
+        next.delete(projectId);
+        return next;
+      });
+    }
+  };
+
   const sortedMyProjects = useMemo(() => {
     return [...myProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [myProjects]);
@@ -125,8 +204,14 @@ export default function ProjectListPage() {
               </Typography>
               <Stack spacing={2} alignItems="center">
                 {paginatedMyProjects.map(project => (
-                  <Box key={project.id} sx={{ width: '100%', maxWidth: 500 }}>
-                    <ProjectCard project={project} />
+                  <Box key={project.id} sx={{ width: '100%', maxWidth: 600 }}>
+                    <ProjectCard project={project}
+                      action={(
+                        <Button variant="outlined" color="error" onClick={() => handleLeaveProject(project.id)} disabled={leavingIds.has(project.id)} >
+                          Выйти из проекта
+                        </Button>
+                      )}
+                    />
                   </Box>
                 ))}
               </Stack>
@@ -143,8 +228,19 @@ export default function ProjectListPage() {
               </Typography>
               <Stack spacing={2} alignItems="center">
                 {paginatedOtherProjects.map(project => (
-                  <Box key={project.id} sx={{ width: '100%', maxWidth: 500 }}>
-                    <ProjectCard project={project} />
+                  <Box key={project.id} sx={{ width: '100%', maxWidth: 600 }}>
+                    <ProjectCard
+                      project={project}
+                      action={(
+                        <Button
+                          variant="outlined"
+                          onClick={() => handleJoinProject(project.id)}
+                          disabled={joiningIds.has(project.id)}
+                        >
+                          Присоединиться
+                        </Button>
+                      )}
+                    />
                   </Box>
                 ))}
               </Stack>

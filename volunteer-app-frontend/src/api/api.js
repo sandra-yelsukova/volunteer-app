@@ -101,6 +101,18 @@ export function getProjectParticipants(projectId) {
   return request(`/projects/${projectId}/participants`);
 }
 
+export function addProjectParticipant(projectId, userId) {
+  return request(`/projects/${projectId}/participants/${userId}`, {
+    method: 'POST',
+  });
+}
+
+export function removeProjectParticipant(projectId, userId) {
+  return request(`/projects/${projectId}/participants/${userId}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function login(email, password) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',

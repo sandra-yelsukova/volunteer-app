@@ -13,7 +13,7 @@ function getUserFullName(user) {
   return parts.join(' ');
 }
 
-export default function ProjectCard({ project }) {
+export default function ProjectCard({ project, action }) {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -46,10 +46,16 @@ export default function ProjectCard({ project }) {
               {getUserFullName(organizer)}
             </MuiLink>
           </Typography>
-
-          <Typography variant="body2" color="text.secondary">
+        </Box>
+        <Box sx={{ display: 'flex', gap: 18 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
             Создан: {new Date(project.createdAt).toLocaleDateString()}
           </Typography>
+            {action && (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }} onClick={(e) => e.stopPropagation()}>
+                {action}
+              </Box>
+            )}
         </Box>
       </CardContent>
     </Card>

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export default function MainLayout() {
   const { auth } = useAuth();
   const isAuth = Boolean(auth);
+  const isOrganizer = auth?.role === 'ORGANIZER';
 
   return (
     <>
@@ -18,12 +19,11 @@ export default function MainLayout() {
           <Button color="inherit" sx={{ fontSize: '1rem' }} component={Link} to="/projects">
             Проекты
           </Button>
-          <Button color="inherit" sx={{ fontSize: '1rem' }} component={Link} to="/participants">
-            Участники
-          </Button>
-          <Button color="inherit" sx={{ fontSize: '1rem' }} component={Link} to="/reports">
-            Отчёты
-          </Button>
+          {isOrganizer && (
+            <Button color="inherit" sx={{ fontSize: '1rem' }} component={Link} to="/participants">
+              Участники
+            </Button>
+          )}
 
           <Box sx={{ flexGrow: 1 }} />
 
