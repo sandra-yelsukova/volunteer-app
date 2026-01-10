@@ -1,10 +1,12 @@
 const API_URL = 'http://localhost:8080/api';
 
 async function request(path, options = {}) {
+  const token = localStorage.getItem('token');
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   });
@@ -132,6 +134,21 @@ export function getGroupMembers(groupId) {
 
 export function getGroupById(groupId) {
   return request(`/groups/${groupId}`);
+}
+
+export async function createGroup(data) {
+  const response = await fetch(`${API_URL}/groups`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || 'Ошибка создания группы');
+  }
+
+  return response.json();
 }
 
 
