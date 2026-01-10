@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink, Button, TextField, IconButton, Alert } from '@mui/material';
-import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject, removeProjectParticipant } from '../api/api';
+import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject, deleteProject, removeProjectParticipant } from '../api/api';
 import TasksTable from '../components/TasksTable';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -22,7 +23,14 @@ export default function ProjectPage() {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
+
+  function getCurrentUserId() {
+    const raw = localStorage.getItem('userId');
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -112,6 +120,9 @@ export default function ProjectPage() {
     return <Typography>Проект не найден</Typography>;
   }
 
+  const currentUserId = getCurrentUserId();
+  const isProjectOrganizer = currentUserId !== null && project?.organizer?.id === currentUserId;
+
   return (
     <Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2, mb: 3, alignItems: 'stretch', }}>
@@ -127,20 +138,44 @@ export default function ProjectPage() {
               )}
 
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {!editMode ? (
-                  <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)}>
-                    Редактировать
-                  </Button>
-                ) : (
-                  <>
-                    <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
-                      Сохранить
-                    </Button>
+                {isProjectOrganizer && (
+                  !editMode ? (
+                    <>
+                      <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)}>
+                        Редактировать
+                      </Button>
+                      <Button variant="outlined" color="error" startIcon={<DeleteIcon />}
+                        onClick={async () => {
+                          if (!window.confirm('Удалить проект?')) {
+                            return;
+                          }
 
-                    <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleCancel}>
-                      Отмена
-                    </Button>
-                  </>
+                          try {
+                            setDeleting(true);
+                            await deleteProject(project.id);
+                            navigate('/projects');
+                          } catch (e) {
+                            alert(e.message || 'Ошибка удаления проекта');
+                          } finally {
+                            setDeleting(false);
+                          }
+                        }}
+                        disabled={deleting}
+                      >
+                        Удалить
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
+                        Сохранить
+                      </Button>
+
+                      <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleCancel}>
+                        Отмена
+                      </Button>
+                    </>
+                  )
                 )}
               </Box>
             </Box>
@@ -202,25 +237,27 @@ export default function ProjectPage() {
               <List disablePadding sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
                 {participants.map((user) => (
                   <ListItem key={user.id} divider disableGutters sx={{ overflowX: 'hidden' }}
-                    secondaryAction={(
-                      <IconButton edge="end" aria-label="Удалить участника проекта"
-                        onClick={async () => {
-                          try {
-                            setParticipantsError('');
-                            setRemovingParticipantIds((prev) => [...prev, user.id]);
-                            await removeProjectParticipant(project.id, user.id);
-                            setParticipants((prev) => prev.filter((participant) => participant.id !== user.id));
-                          } catch (e) {
-                            setParticipantsError(e.message || 'Ошибка удаления участника проекта');
-                          } finally {
-                            setRemovingParticipantIds((prev) => prev.filter((id) => id !== user.id));
-                          }
-                        }}
-                        disabled={removingParticipantIds.includes(user.id)}
-                      >
-                        <CloseIcon sx={{ mr: 2 }} />
-                      </IconButton>
-                    )}
+                    secondaryAction={
+                      isProjectOrganizer ? (
+                        <IconButton edge="end" aria-label="Удалить участника проекта"
+                          onClick={async () => {
+                            try {
+                              setParticipantsError('');
+                              setRemovingParticipantIds((prev) => [...prev, user.id]);
+                              await removeProjectParticipant(project.id, user.id);
+                              setParticipants((prev) => prev.filter((participant) => participant.id !== user.id));
+                            } catch (e) {
+                              setParticipantsError(e.message || 'Ошибка удаления участника проекта');
+                            } finally {
+                              setRemovingParticipantIds((prev) => prev.filter((id) => id !== user.id));
+                            }
+                          }}
+                          disabled={removingParticipantIds.includes(user.id)}
+                        >
+                          <CloseIcon sx={{ mr: 2 }} />
+                        </IconButton>
+                      ) : null
+                    }
                   >
                     <ListItemText
                       primary={
@@ -251,9 +288,11 @@ export default function ProjectPage() {
             Задачи проекта
           </Typography>
 
-          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate(`/projects/${project.id}/tasks/create`)} >
-            Добавить задачу
-          </Button>
+          {isProjectOrganizer && (
+            <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate(`/projects/${project.id}/tasks/create`)} >
+              Добавить задачу
+            </Button>
+          )}
         </Box>
         {tasksLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

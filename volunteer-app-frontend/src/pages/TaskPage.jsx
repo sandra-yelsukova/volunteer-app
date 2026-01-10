@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Box, Typography, CircularProgress, Card, CardContent, Divider, Chip, Grid, Button, TextField, MenuItem, Link as MuiLink } from '@mui/material';
-import { getTaskById, updateTask, getGroupsByOrganizer, getProjectParticipants } from '../api/api';
+import { getTaskById, updateTask, deleteTask, getGroupsByOrganizer, getProjectParticipants } from '../api/api';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -18,6 +19,8 @@ export default function TaskPage() {
   const [groups, setGroups] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const STATUS_LABELS = {
     OPEN: 'ОЖИДАЕТ',
@@ -163,6 +166,9 @@ export default function TaskPage() {
     return <Typography>Задача не найдена</Typography>;
   }
 
+  const currentUserId = getCurrentUserId();
+  const isProjectOrganizer = currentUserId !== null && task?.project?.organizer?.id === currentUserId;
+
   return (
     <Box>
       <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2, mb: 3, alignItems: 'stretch', }}>
@@ -182,23 +188,47 @@ export default function TaskPage() {
                   )}
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  {!editMode ? (
-                    <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} >
-                      Редактировать
-                    </Button>
-                  ) : (
-                    <>
-                      <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving} >
-                        Сохранить
-                      </Button>
+                {isProjectOrganizer && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {!editMode ? (
+                      <>
+                        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} >
+                          Редактировать
+                        </Button>
+                        <Button variant="outlined" color="error" startIcon={<DeleteIcon />}
+                          onClick={async () => {
+                            if (!window.confirm('Удалить задачу?')) {
+                              return;
+                            }
 
-                      <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleCancel} >
-                        Отмена
-                      </Button>
-                    </>
-                  )}
-                </Box>
+                            try {
+                              setDeleting(true);
+                              await deleteTask(task.id);
+                              navigate(`/projects/${task.project.id}`);
+                            } catch (e) {
+                              alert(e.message || 'Ошибка удаления задачи');
+                            } finally {
+                              setDeleting(false);
+                            }
+                          }}
+                          disabled={deleting}
+                        >
+                          Удалить
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving} >
+                          Сохранить
+                        </Button>
+
+                        <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleCancel} >
+                          Отмена
+                        </Button>
+                      </>
+                    )}
+                  </Box>
+                )}
               </Box>
             </Box>
 

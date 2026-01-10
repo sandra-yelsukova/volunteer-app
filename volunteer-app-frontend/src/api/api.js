@@ -193,10 +193,22 @@ export function updateProject(id, data) {
   });
 }
 
+export function deleteProject(id) {
+  return request(`/projects/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export function updateTask(id, data) {
   return request(`/tasks/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
+  });
+}
+
+export function deleteTask(id) {
+  return request(`/tasks/${id}`, {
+    method: 'DELETE',
   });
 }
 
