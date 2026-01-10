@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography, Link as MuiLink } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Divider, Grid, List, ListItem, ListItemText, Typography, Link as MuiLink } from '@mui/material';
 import { getGroupsByOrganizer, getGroupMembers, getOrganizerParticipants } from '../api/api';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import AddIcon from '@mui/icons-material/Add';
 
 function getCurrentUserId() {
   const raw = localStorage.getItem('userId');
@@ -101,9 +102,15 @@ export default function ParticipantsPage() {
     <Box sx={{ width: '100%', px: 3 }}>
       <Grid container spacing={3} wrap="nowrap" alignItems="flex-start">
         <Grid item xs>
-          <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-            Группы волонтёров
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2, mb: 2 }}>
+            <Typography variant="h4">
+              Группы волонтёров
+            </Typography>
+
+            <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/groups/create')} sx={{ mr: 4 }}>
+              Добавить группу
+            </Button>
+          </Box>
 
           {groups.length === 0 ? (
             <Card>

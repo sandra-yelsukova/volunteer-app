@@ -14,6 +14,7 @@ import GroupPage from './pages/GroupPage';
 import UserPage from './pages/UserPage';
 import ProjectCreatePage from './pages/ProjectCreatePage';
 import TaskCreatePage from './pages/TaskCreatePage';
+import GroupCreatePage from './pages/GroupCreatePage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/users/:id" element={<UserPage />} />
           <Route path="/projects/create" element={<ProjectCreatePage />} />
           <Route path="/projects/:projectId/tasks/create" element={<TaskCreatePage />} />
+          <Route path="/groups/create" element={<GroupCreatePage />} />
         </Route>
       </Route>
 

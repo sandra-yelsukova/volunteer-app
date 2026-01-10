@@ -20,7 +20,13 @@ async function request(path, options = {}) {
     return null;
   }
 
-  return response.json();
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  return JSON.parse(text);
 }
 
 export function getProjects() {
@@ -160,4 +166,44 @@ export function updateTask(id, data) {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
+}
+
+export function addGroupMember(groupId, userId) {
+  return request(`/groups/${groupId}/members/${userId}`, {
+    method: 'POST',
+  });
+}
+
+export function removeGroupMember(groupId, userId) {
+  return request(`/groups/${groupId}/members/${userId}`, {
+    method: 'DELETE',
+  });
+}
+
+export function updateGroup(id, data) {
+  return request(`/groups/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteGroup(id) {
+  return request(`/groups/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function createGroup(data) {
+  const response = await fetch(`${API_URL}/groups`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || 'Ошибка создания группы');
+  }
+
+  return response.json();
 }
