@@ -184,34 +184,28 @@ export default function GroupPage() {
   }
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: 2, }}>
-      <Box sx={{ width: '100%', maxWidth: 1100 }}>
-        <Grid container spacing={3} alignItems="stretch" >
-          <Grid item xs={12} md={6}>
+    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: 2, mt: 2 }}>
+      <Box sx={{ width: '100%', maxWidth: 1280 }}>
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch" >
+          <Grid item sx={{ width: 600, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 2 }} >
+
             <Typography variant="h4">
               {group.name}
             </Typography>
-          </Grid>
 
-          <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }} >
-            <Button variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={handleDeleteGroup} disabled={deleteLoading} >
-              Удалить группу
-            </Button>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }} >
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 2 }}  >
                     Информация о группе
                   </Typography>
 
                   {!editMode ? (
-                    <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)}>
+                    <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} sx={{ mb: 2 }} >
                       Редактировать
                     </Button>
                   ) : (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                       <Button variant="contained" startIcon={<SaveIcon />} disabled={saving}
                         onClick={async () => {
                           try {
@@ -272,21 +266,26 @@ export default function GroupPage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item sx={{ width: 600, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 2 }} >
+            <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+              <Button variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={handleDeleteGroup} disabled={deleteLoading} >
+                Удалить группу
+              </Button>
+            </Box>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }} >
               <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom sx={{ mb: 2, mt: 1 }}>
                   Участники группы ({members.length})
                 </Typography>
 
                 <Divider sx={{ mb: 2 }} />
 
                 {members.length === 0 ? (
-                  <Typography color="text.secondary">
+                  <Typography color="text.secondary" sx={{ mb: 2 }}>
                     В группе пока нет участников.
                   </Typography>
                 ) : (
-                  <List sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                  <List sx={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, minHeight: 0 }}>
                     {members.map((user) => (
                       <ListItem key={user.id} divider disableGutters secondaryAction={(
                           <IconButton edge="end" aria-label="Удалить участника" onClick={async () => {
@@ -320,10 +319,8 @@ export default function GroupPage() {
                   </List>
                 )}
 
-                <Divider sx={{ my: 2 }} />
-
                 {taskWarningCount > 0 && (
-                  <Alert severity="warning" sx={{ mb: 2 }}>
+                  <Alert severity="warning" sx={{ mb: 2, mt: 2 }}>
                     Группа назначена исполнителем задач: {taskWarningCount}
                   </Alert>
                 )}
@@ -374,7 +371,7 @@ export default function GroupPage() {
                     }}
                     disabled={!selectedParticipantId || addingMember}
                   >
-                    Добавить участника
+                    Добавить
                   </Button>
                 </Box>
               </CardContent>
