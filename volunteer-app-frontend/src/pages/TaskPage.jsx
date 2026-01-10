@@ -17,6 +17,7 @@ export default function TaskPage() {
   const [editDetails, setEditDetails] = useState(false);
   const [groups, setGroups] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
 
   const STATUS_LABELS = {
     OPEN: 'ОЖИДАЕТ',
@@ -44,7 +45,6 @@ export default function TaskPage() {
         setTask(data);
 
         const organizerId = getCurrentUserId();
-        const projectId = data?.project?.id;
 
         if (organizerId) {
           getGroupsByOrganizer(organizerId)
@@ -54,31 +54,13 @@ export default function TaskPage() {
           setGroups([]);
         }
 
-        if (projectId) {
-          getProjectParticipants(projectId)
-            .then(res => {
-              if (Array.isArray(res)) {
-                setParticipants(res);
-              } else if (Array.isArray(res.participants)) {
-                setParticipants(res.participants);
-              } else if (Array.isArray(res.content)) {
-                setParticipants(res.content);
-              } else {
-                setParticipants([]);
-              }
-            })
-            .catch(() => setParticipants([]));
-        } else {
-          setParticipants([]);
-        }
-
         setForm({
           title: data.title || '',
           description: data.description || '',
           priority: data.priority || '',
           status: data.status || '',
           taskType: data.taskType || '',
-          assigneeType: data.assigneeType || '',
+          assigneeType: data.assigneeType ?? 'NONE',
           assigneeId:
             data.assigneeType === 'USER'
               ? (data.assigneeUser?.id ?? '')
@@ -94,6 +76,46 @@ export default function TaskPage() {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+      const projectId = task?.project?.id;
+      if (!projectId) {
+        setParticipants([]);
+        return;
+      }
+
+      let cancelled = false;
+      setParticipantsLoading(true);
+
+      getProjectParticipants(projectId)
+        .then((res) => {
+          if (cancelled) return;
+
+          if (Array.isArray(res)) {
+            setParticipants(res);
+          } else if (Array.isArray(res.participants)) {
+            setParticipants(res.participants);
+          } else if (Array.isArray(res.content)) {
+            setParticipants(res.content);
+          } else {
+            setParticipants([]);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setParticipants([]);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setParticipantsLoading(false);
+          }
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [task?.project?.id]);
 
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -209,15 +231,23 @@ export default function TaskPage() {
                     onClick={async () => {
                       try {
                         setSaving(true);
+                        const assigneeId = form.assigneeId ? Number(form.assigneeId) : null;
+                        const assigneePayload = {
+                          assigneeType: form.assigneeType || 'NONE',
+                        };
+
+                        if (form.assigneeType === 'USER' && assigneeId) {
+                          assigneePayload.assigneeUser = { id: assigneeId };
+                        }
+
+                        if (form.assigneeType === 'GROUP' && assigneeId) {
+                          assigneePayload.assigneeGroup = { id: assigneeId };
+                        }
                         const updated = await updateTask(task.id, {
                           priority: form.priority,
                           status: form.status,
                           taskType: form.taskType,
-                          assigneeType: form.assigneeType || null,
-                          assigneeUserId:
-                            form.assigneeType === 'USER' ? form.assigneeId : null,
-                          assigneeGroupId:
-                            form.assigneeType === 'GROUP' ? form.assigneeId : null,
+                          ...assigneePayload,
                         });
                         setTask(updated);
                         setEditDetails(false);
@@ -239,6 +269,13 @@ export default function TaskPage() {
                         priority: task.priority,
                         status: task.status,
                         taskType: task.taskType,
+                        assigneeType: task.assigneeType ?? 'NONE',
+                        assigneeId:
+                          task.assigneeType === 'USER'
+                            ? (task.assigneeUser?.id ?? '')
+                            : task.assigneeType === 'GROUP'
+                            ? (task.assigneeGroup?.id ?? '')
+                            : '',
                       });
                       setEditDetails(false);
                     }}
@@ -252,7 +289,7 @@ export default function TaskPage() {
             <Divider sx={{ mb: 2 }} />
 
             <Box sx={{ mb: 2 }}>
-              <Grid container spacing={2}>
+              <Grid container spacing={5}>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Приоритет
@@ -384,11 +421,17 @@ export default function TaskPage() {
                     Участники проекта
                   </MenuItem>
 
-                  {participants.map(user => (
-                    <MenuItem key={`USER-${user.id}`} value={`USER:${user.id}`} >
-                      👤 {user.surname} {user.name}
-                    </MenuItem>
-                  ))}
+                  {participantsLoading ? (
+                    <MenuItem disabled>Загрузка...</MenuItem>
+                  ) : participants.length === 0 ? (
+                    <MenuItem disabled>Участники не найдены</MenuItem>
+                  ) : (
+                    participants.map(user => (
+                      <MenuItem key={`USER-${user.id}`} value={`USER:${user.id}`} >
+                        👤 {user.surname} {user.name}
+                      </MenuItem>
+                    ))
+                  )}
                 </TextField>
               )}
             </Box>
@@ -419,15 +462,27 @@ export default function TaskPage() {
               </Typography>
             </Box>
 
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">
-                Дата создания
-              </Typography>
+            <Grid container spacing={5}>
+              <Grid item xs={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Создано
+                </Typography>
 
-              <Typography>
-                {new Date(task.createdAt).toLocaleString()}
-              </Typography>
-            </Box>
+                <Typography>
+                  {new Date(task.createdAt).toLocaleString()}
+                </Typography>
+              </Grid>
+
+              <Grid item xs={6}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Обновлено
+                </Typography>
+
+                <Typography>
+                  {task.updatedAt ? new Date(task.updatedAt).toLocaleString() : '—'}
+                </Typography>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Box>
