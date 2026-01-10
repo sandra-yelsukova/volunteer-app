@@ -141,7 +141,7 @@ export default function ProjectPage() {
                 {isProjectOrganizer && (
                   !editMode ? (
                     <>
-                      <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)}>
+                      <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} sx={{ mr: 1 }}>
                         Редактировать
                       </Button>
                       <Button variant="outlined" color="error" startIcon={<DeleteIcon />}

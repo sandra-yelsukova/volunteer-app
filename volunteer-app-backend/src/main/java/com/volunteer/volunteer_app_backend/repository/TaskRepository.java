@@ -14,6 +14,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findByProjectOrganizerId(Long organizerId);
 
+    void deleteByProject_Id(Long projectId);
+
     @Query("""
             select distinct t
             from Task t

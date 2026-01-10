@@ -14,4 +14,6 @@ public interface ProjectParticipantRepository
     Optional<ProjectParticipant> findByProject_IdAndUser_Id(Long projectId, Long userId);
 
     List<ProjectParticipant> findAllByProject_Id(Long projectId);
+
+    void deleteByProject_Id(Long projectId);
 }

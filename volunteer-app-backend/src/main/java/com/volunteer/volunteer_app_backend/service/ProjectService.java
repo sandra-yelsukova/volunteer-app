@@ -2,10 +2,13 @@ package com.volunteer.volunteer_app_backend.service;
 
 import com.volunteer.volunteer_app_backend.model.Project;
 import com.volunteer.volunteer_app_backend.model.User;
+import com.volunteer.volunteer_app_backend.repository.ProjectParticipantRepository;
 import com.volunteer.volunteer_app_backend.repository.ProjectRepository;
+import com.volunteer.volunteer_app_backend.repository.TaskRepository;
 import com.volunteer.volunteer_app_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import java.time.Instant;
@@ -17,6 +20,8 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final ProjectParticipantRepository participantRepository;
 
     public List<Project> getAll() {
         return projectRepository.findAll();
@@ -123,10 +128,13 @@ public class ProjectService {
         return projectRepository.save(existing);
     }
 
+    @Transactional
     public void delete(Long id) {
         if (!projectRepository.existsById(id)) {
             throw new IllegalArgumentException("Project not found: " + id);
         }
+        taskRepository.deleteByProject_Id(id);
+        participantRepository.deleteByProject_Id(id);
         projectRepository.deleteById(id);
     }
 

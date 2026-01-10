@@ -192,7 +192,7 @@ export default function TaskPage() {
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     {!editMode ? (
                       <>
-                        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} >
+                        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} sx={{ mr: 1 }}>
                           Редактировать
                         </Button>
                         <Button variant="outlined" color="error" startIcon={<DeleteIcon />}
