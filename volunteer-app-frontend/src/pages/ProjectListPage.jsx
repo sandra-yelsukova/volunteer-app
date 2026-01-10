@@ -76,14 +76,6 @@ export default function ProjectListPage() {
     };
   }, [auth]);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   const sortedMyProjects = useMemo(() => {
     return [...myProjects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [myProjects]);
@@ -107,6 +99,14 @@ export default function ProjectListPage() {
 
   const isVolunteer = auth?.role === 'VOLUNTEER';
   const isOrganizer = auth?.role === 'ORGANIZER';
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', px: 2, }}>
