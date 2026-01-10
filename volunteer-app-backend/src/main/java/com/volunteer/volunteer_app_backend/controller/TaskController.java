@@ -43,4 +43,14 @@ public class TaskController {
     public void delete(@PathVariable Long id) {
         taskService.delete(id);
     }
+
+    @GetMapping("/by-organizer/{organizerId}")
+    public List<Task> getByOrganizer(@PathVariable Long organizerId) {
+        return taskService.getByOrganizerId(organizerId);
+    }
+
+    @GetMapping("/by-participant/{userId}")
+    public List<Task> getByParticipant(@PathVariable Long userId) {
+        return taskService.getByParticipantId(userId);
+    }
 }

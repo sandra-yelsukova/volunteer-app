@@ -22,4 +22,23 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
         where p.organizer.id = :organizerId
     """)
     List<User> findAllParticipantsByOrganizerId(@Param("organizerId") Long organizerId);
+
+    @Query("""
+        select distinct p
+        from Project p
+        join ProjectParticipant pp on pp.project = p
+        where pp.user.id = :userId
+    """)
+    List<Project> findByParticipantId(@Param("userId") Long userId);
+
+    @Query("""
+        select p
+        from Project p
+        where p.id not in (
+            select pp.project.id
+            from ProjectParticipant pp
+            where pp.user.id = :userId
+        )
+    """)
+    List<Project> findByNonParticipantId(@Param("userId") Long userId);
 }

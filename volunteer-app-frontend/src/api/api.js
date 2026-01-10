@@ -33,6 +33,18 @@ export function getProjects() {
   return request('/projects');
 }
 
+export function getProjectsByOrganizerId(organizerId) {
+  return request(`/projects/by-organizer/${organizerId}`);
+}
+
+export function getProjectsByParticipantId(userId) {
+  return request(`/projects/by-participant/${userId}`);
+}
+
+export function getProjectsByNonParticipantId(userId) {
+  return request(`/projects/by-non-participant/${userId}`);
+}
+
 export async function createProject(data) {
   const response = await fetch(`${API_URL}/projects`, {
     method: 'POST',
@@ -75,6 +87,14 @@ export function getTasks() {
 
 export function getTasksByProjectId(projectId) {
   return request(`/tasks/by-project/${projectId}`);
+}
+
+export function getTasksByOrganizerId(organizerId) {
+  return request(`/tasks/by-organizer/${organizerId}`);
+}
+
+export function getTasksByParticipantId(userId) {
+  return request(`/tasks/by-participant/${userId}`);
 }
 
 export function getProjectParticipants(projectId) {
