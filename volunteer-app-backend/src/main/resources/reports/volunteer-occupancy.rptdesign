@@ -131,7 +131,7 @@
                         <property name="textAlign">center</property>
                         <property name="borderBottomStyle">solid</property>
                         <property name="borderBottomWidth">1px</property>
-                        <label><text-property name="text">Волонтёр</text-property></label>
+                        <label><text-property name="text">Волонтер</text-property></label>
                     </cell>
                     <cell>
                         <property name="textAlign">center</property>
@@ -155,7 +155,7 @@
                         <property name="textAlign">center</property>
                         <property name="borderBottomStyle">solid</property>
                         <property name="borderBottomWidth">1px</property>
-                        <label><text-property name="text">Завершённые</text-property></label>
+                        <label><text-property name="text">Завершенные</text-property></label>
                     </cell>
                 </row>
             </header>

@@ -186,6 +186,22 @@ export async function getReportHtml(reportId) {
   return response.text();
 }
 
+export async function downloadReport(reportId, format) {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/reports/${reportId}/export?format=${format}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Ошибка ${response.status}: ${text}`);
+  }
+
+  return response.blob();
+}
+
 export function getGroupMembers(groupId) {
   return request(`/groups/${groupId}/members`);
 }

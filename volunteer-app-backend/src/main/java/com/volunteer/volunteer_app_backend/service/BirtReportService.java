@@ -4,11 +4,14 @@ import org.eclipse.birt.core.framework.Platform;
 import org.eclipse.birt.core.exception.BirtException;
 import org.eclipse.birt.report.engine.api.EngineConfig;
 import org.eclipse.birt.report.engine.api.EngineException;
+import org.eclipse.birt.report.engine.api.EXCELRenderOption;
 import org.eclipse.birt.report.engine.api.HTMLRenderOption;
 import org.eclipse.birt.report.engine.api.IReportEngine;
 import org.eclipse.birt.report.engine.api.IReportEngineFactory;
 import org.eclipse.birt.report.engine.api.IReportRunnable;
 import org.eclipse.birt.report.engine.api.IRunAndRenderTask;
+import org.eclipse.birt.report.engine.api.PDFRenderOption;
+import org.eclipse.birt.report.engine.api.RenderOption;
 import org.eclipse.birt.report.model.api.OdaDataSourceHandle;
 import org.eclipse.birt.report.model.api.ReportDesignHandle;
 import org.eclipse.birt.report.model.api.activity.SemanticException;
@@ -82,6 +85,10 @@ public class BirtReportService {
     }
 
     public byte[] renderReport(String templatePath) {
+        return renderReport(templatePath, "html");
+    }
+
+    public byte[] renderReport(String templatePath, String format) {
         try (
                 InputStream templateStream = resourceLoader
                         .getResource("classpath:" + templatePath)
@@ -93,16 +100,7 @@ public class BirtReportService {
 
             IRunAndRenderTask task = reportEngine.createRunAndRenderTask(design);
 
-            HTMLRenderOption options = new HTMLRenderOption();
-            options.setOutputFormat(HTMLRenderOption.OUTPUT_FORMAT_HTML);
-
-            options.setEmbeddable(false);
-            options.setEnableInlineStyle(true);
-            options.setHtmlPagination(false);
-
-            options.setUrlEncoding("UTF-8");
-
-            options.setOutputStream(outputStream);
+            RenderOption options = createRenderOption(format, outputStream);
 
             task.setRenderOption(options);
             task.run();
@@ -134,6 +132,35 @@ public class BirtReportService {
             ds.setProperty("odaAutoCommit", "true");
         } catch (SemanticException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    private RenderOption createRenderOption(String format, ByteArrayOutputStream outputStream) throws EngineException {
+        switch (format) {
+            case "html": {
+                HTMLRenderOption options = new HTMLRenderOption();
+                options.setOutputFormat(HTMLRenderOption.OUTPUT_FORMAT_HTML);
+                options.setEmbeddable(false);
+                options.setEnableInlineStyle(true);
+                options.setHtmlPagination(false);
+                options.setUrlEncoding("UTF-8");
+                options.setOutputStream(outputStream);
+                return options;
+            }
+            case "pdf": {
+                PDFRenderOption options = new PDFRenderOption();
+                options.setOutputFormat(PDFRenderOption.OUTPUT_FORMAT_PDF);
+                options.setOutputStream(outputStream);
+                return options;
+            }
+            case "xls": {
+                EXCELRenderOption options = new EXCELRenderOption();
+                options.setOutputFormat("xls");
+                options.setOutputStream(outputStream);
+                return options;
+            }
+            default:
+                throw new IllegalArgumentException("Неподдерживаемый формат: " + format);
         }
     }
 }

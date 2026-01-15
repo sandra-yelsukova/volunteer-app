@@ -12,7 +12,7 @@ function getUserFullName(user) {
 
 function getRoleLabel(role) {
   if (role === 'ORGANIZER') return 'Организатор';
-  if (role === 'VOLUNTEER') return 'Волонтёр';
+  if (role === 'VOLUNTEER') return 'Волонтер';
   return role;
 }
 

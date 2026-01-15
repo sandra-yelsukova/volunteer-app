@@ -104,7 +104,7 @@ export default function ParticipantsPage() {
         <Grid item xs>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2, mb: 2 }}>
             <Typography variant="h4">
-              Группы волонтёров
+              Группы волонтеров
             </Typography>
 
             <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/groups/create')} sx={{ mr: 4 }}>

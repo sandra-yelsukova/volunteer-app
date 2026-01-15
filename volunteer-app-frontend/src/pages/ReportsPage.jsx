@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
-import { getReportHtml, getReports } from '../api/api';
+import { downloadReport, getReportHtml, getReports } from '../api/api';
 
 export default function ReportsPage() {
   const [reports, setReports] = useState([]);
@@ -10,6 +10,30 @@ export default function ReportsPage() {
   const [reportHtml, setReportHtml] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState(null);
+  const [exportLoading, setExportLoading] = useState(false);
+  const reportFrameRef = useRef(null);
+
+  const updateReportFrameLayout = () => {
+    const frame = reportFrameRef.current;
+    if (!frame) {
+      return;
+    }
+
+    const doc = frame.contentDocument;
+    if (!doc || !doc.body) {
+      return;
+    }
+
+    doc.body.style.margin = '0';
+    doc.body.style.display = 'flex';
+    doc.body.style.justifyContent = 'center';
+    doc.body.style.alignItems = 'flex-start';
+    doc.body.style.padding = '16px 0';
+    doc.body.style.fontSize = '16px';
+
+    const height = doc.documentElement.scrollHeight;
+    frame.style.height = `${height}px`;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +77,32 @@ export default function ReportsPage() {
       setReportError(err.message || 'Не удалось сформировать отчет');
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const handleExportReport = async (format) => {
+    if (!activeReportId) {
+      return;
+    }
+
+    setExportLoading(true);
+    setReportError(null);
+
+    try {
+      const fileBlob = await downloadReport(activeReportId, format);
+      const url = window.URL.createObjectURL(fileBlob);
+      const link = document.createElement('a');
+      const extension = format === 'pdf' ? 'pdf' : 'xls';
+      link.href = url;
+      link.download = `report-${activeReportId}.${extension}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setReportError(err.message || 'Не удалось скачать отчет');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -104,9 +154,19 @@ export default function ReportsPage() {
         )}
 
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            Результат отчета
-          </Typography>
+          <Box sx={{ width: '100%', maxWidth: 900, display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, mx: 'auto' }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              Результат отчета
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 2 }} alignItems="flex-start">
+              <Button variant="outlined" size="small" onClick={() => handleExportReport('pdf')} disabled={!reportHtml || reportLoading || exportLoading} >
+                Скачать PDF
+              </Button>
+              <Button variant="outlined" size="small" onClick={() => handleExportReport('xls')} disabled={!reportHtml || reportLoading || exportLoading} >
+                Скачать Excel
+              </Button>
+            </Stack>
+          </Box>
           {reportError && (
             <Alert severity="error" sx={{ mb: 2 }}>
               Ошибка формирования: {reportError}
@@ -126,8 +186,10 @@ export default function ReportsPage() {
             </Typography>
           )}
           {reportHtml && !reportLoading && (
-            <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, overflow: 'hidden' }}>
-              <Box component="iframe" title="BIRT report" sx={{ width: '100%', border: 'none', minHeight: 420, display: 'block' }} srcDoc={reportHtml} />
+            <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+              <Box component="iframe" title="BIRT report" ref={reportFrameRef} onLoad={updateReportFrameLayout}
+                sx={{ width: '100%', border: 'none', display: 'block' }} srcDoc={reportHtml}
+              />
             </Box>
           )}
         </Box>
