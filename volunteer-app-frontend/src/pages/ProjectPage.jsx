@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, CircularProgress, Card, CardContent, Divider, List, ListItem, ListItemText, Link as MuiLink, Button, TextField, IconButton, Alert } from '@mui/material';
-import { getProjectById, getTasksByProjectId, getProjectParticipants, updateProject, deleteProject, removeProjectParticipant } from '../api/api';
+import { addProjectParticipant, getProjectById, getTasksByProjectId, getProjectParticipants, updateProject, deleteProject, removeProjectParticipant } from '../api/api';
 import TasksTable from '../components/TasksTable';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProjectPage() {
   const { id } = useParams();
+  const { auth } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +26,7 @@ export default function ProjectPage() {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [joining, setJoining] = useState(false);
   const navigate = useNavigate();
 
   function getCurrentUserId() {
@@ -120,8 +123,10 @@ export default function ProjectPage() {
     return <Typography>Проект не найден</Typography>;
   }
 
-  const currentUserId = getCurrentUserId();
+  const currentUserId = auth?.userId ?? getCurrentUserId();
   const isProjectOrganizer = currentUserId !== null && project?.organizer?.id === currentUserId;
+  const isVolunteer = auth?.role === 'VOLUNTEER';
+  const isCurrentUserParticipant = currentUserId !== null && participants.some((participant) => participant.id === currentUserId);
 
   return (
     <Box>
@@ -138,7 +143,7 @@ export default function ProjectPage() {
               )}
 
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {isProjectOrganizer && (
+                {isProjectOrganizer ? (
                   !editMode ? (
                     <>
                       <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} sx={{ mr: 1 }}>
@@ -175,6 +180,30 @@ export default function ProjectPage() {
                         Отмена
                       </Button>
                     </>
+                  )
+                ) : (
+                  isVolunteer && !isCurrentUserParticipant && !participantsLoading && (
+                    <Button variant="outlined"
+                      onClick={async () => {
+                        if (!currentUserId) return;
+                        try {
+                          setJoining(true);
+                          setParticipantsError('');
+                          setParticipantsLoading(true);
+                          await addProjectParticipant(project.id, currentUserId);
+                          const refreshed = await getProjectParticipants(project.id);
+                          setParticipants(Array.isArray(refreshed) ? refreshed : []);
+                        } catch (e) {
+                          setParticipantsError(e.message || 'Не удалось присоединиться к проекту');
+                        } finally {
+                          setParticipantsLoading(false);
+                          setJoining(false);
+                        }
+                      }}
+                      disabled={joining}
+                    >
+                      Присоединиться
+                    </Button>
                   )
                 )}
               </Box>

@@ -40,6 +40,8 @@ export default function GroupPage() {
     const id = Number(raw);
     return Number.isFinite(id) ? id : null;
   }, []);
+  const currentUserId = organizerId;
+  const isGroupOrganizer = currentUserId !== null && group?.organizer?.id === currentUserId;
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +75,7 @@ export default function GroupPage() {
   }, [groupId]);
 
   useEffect(() => {
-    if (!organizerId) {
+    if (!organizerId || !isGroupOrganizer) {
       setParticipants([]);
       return;
     }
@@ -103,7 +105,7 @@ export default function GroupPage() {
     return () => {
       cancelled = true;
     };
-  }, [organizerId]);
+  }, [organizerId, isGroupOrganizer]);
 
   useEffect(() => {
     if (!group?.id) {
@@ -200,38 +202,40 @@ export default function GroupPage() {
                     Информация о группе
                   </Typography>
 
-                  {!editMode ? (
-                    <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} sx={{ mb: 2 }} >
-                      Редактировать
-                    </Button>
-                  ) : (
-                    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                      <Button variant="contained" startIcon={<SaveIcon />} disabled={saving}
-                        onClick={async () => {
-                          try {
-                            setSaving(true);
-                            const updated = await updateGroup(group.id, { name: formName });
-                            setGroup(updated);
-                            setEditMode(false);
-                          } catch (e) {
-                            setMemberActionError(e.message || 'Ошибка сохранения группы');
-                          } finally {
-                            setSaving(false);
-                          }
-                        }}
-                      >
-                        Сохранить
+                  {isGroupOrganizer && (
+                    !editMode ? (
+                      <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(true)} sx={{ mb: 2 }} >
+                        Редактировать
                       </Button>
+                    ) : (
+                      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                        <Button variant="contained" startIcon={<SaveIcon />} disabled={saving}
+                          onClick={async () => {
+                            try {
+                              setSaving(true);
+                              const updated = await updateGroup(group.id, { name: formName });
+                              setGroup(updated);
+                              setEditMode(false);
+                            } catch (e) {
+                              setMemberActionError(e.message || 'Ошибка сохранения группы');
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                        >
+                          Сохранить
+                        </Button>
 
-                      <Button variant="outlined" startIcon={<CloseIcon />}
-                        onClick={() => {
-                          setFormName(group.name || '');
-                          setEditMode(false);
-                        }}
-                      >
-                        Отмена
-                      </Button>
-                    </Box>
+                        <Button variant="outlined" startIcon={<CloseIcon />}
+                          onClick={() => {
+                            setFormName(group.name || '');
+                            setEditMode(false);
+                          }}
+                        >
+                          Отмена
+                        </Button>
+                      </Box>
+                    )
                   )}
                 </Box>
 
@@ -267,11 +271,13 @@ export default function GroupPage() {
           </Grid>
 
           <Grid item sx={{ width: 600, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 2 }} >
-            <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-              <Button variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={handleDeleteGroup} disabled={deleteLoading} >
-                Удалить группу
-              </Button>
-            </Box>
+            {isGroupOrganizer && (
+              <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                <Button variant="outlined" color="error" startIcon={<DeleteOutlineIcon />} onClick={handleDeleteGroup} disabled={deleteLoading} >
+                  Удалить группу
+                </Button>
+              </Box>
+            )}
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }} >
               <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Typography variant="h6" gutterBottom sx={{ mb: 2, mt: 1 }}>
@@ -287,24 +293,24 @@ export default function GroupPage() {
                 ) : (
                   <List sx={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, minHeight: 0 }}>
                     {members.map((user) => (
-                      <ListItem key={user.id} divider disableGutters secondaryAction={(
-                          <IconButton edge="end" aria-label="Удалить участника" onClick={async () => {
-                              try {
-                                setMemberActionError('');
-                                setRemovingMemberIds((prev) => [...prev, user.id]);
-                                await removeGroupMember(group.id, user.id);
-                                setMembers((prev) => prev.filter((member) => member.id !== user.id));
-                              } catch (e) {
-                                setMemberActionError(e.message || 'Ошибка удаления участника');
-                              } finally {
-                                setRemovingMemberIds((prev) => prev.filter((id) => id !== user.id));
-                              }
-                            }}
-                            disabled={removingMemberIds.includes(user.id)}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        )}
+                      <ListItem key={user.id} divider disableGutters secondaryAction={isGroupOrganizer ? (
+                        <IconButton edge="end" aria-label="Удалить участника" onClick={async () => {
+                            try {
+                              setMemberActionError('');
+                              setRemovingMemberIds((prev) => [...prev, user.id]);
+                              await removeGroupMember(group.id, user.id);
+                              setMembers((prev) => prev.filter((member) => member.id !== user.id));
+                            } catch (e) {
+                              setMemberActionError(e.message || 'Ошибка удаления участника');
+                            } finally {
+                              setRemovingMemberIds((prev) => prev.filter((id) => id !== user.id));
+                            }
+                          }}
+                          disabled={removingMemberIds.includes(user.id)}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      ) : null}
                       >
                         <ListItemText
                           primary={
@@ -331,49 +337,51 @@ export default function GroupPage() {
                   </Alert>
                 )}
 
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <TextField select size="small" label="Участники проектов" value={selectedParticipantId}
-                    onChange={(e) => setSelectedParticipantId(e.target.value)} fullWidth disabled={participantsLoading}
-                  >
-                    <MenuItem value="">
-                      Не выбран
-                    </MenuItem>
+                {isGroupOrganizer && (
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <TextField select size="small" label="Участники проектов" value={selectedParticipantId}
+                      onChange={(e) => setSelectedParticipantId(e.target.value)} fullWidth disabled={participantsLoading}
+                    >
+                      <MenuItem value="">
+                        Не выбран
+                      </MenuItem>
 
-                    {participantsLoading ? (
-                      <MenuItem disabled>Загрузка...</MenuItem>
-                    ) : availableParticipants.length === 0 ? (
-                      <MenuItem disabled>Нет доступных участников</MenuItem>
-                    ) : (
-                      availableParticipants.map((participant) => (
-                        <MenuItem key={participant.id} value={participant.id}>
-                          {getUserFullName(participant)}
-                        </MenuItem>
-                      ))
-                    )}
-                  </TextField>
+                      {participantsLoading ? (
+                        <MenuItem disabled>Загрузка...</MenuItem>
+                      ) : availableParticipants.length === 0 ? (
+                        <MenuItem disabled>Нет доступных участников</MenuItem>
+                      ) : (
+                        availableParticipants.map((participant) => (
+                          <MenuItem key={participant.id} value={participant.id}>
+                            {getUserFullName(participant)}
+                          </MenuItem>
+                        ))
+                      )}
+                    </TextField>
 
-                  <Button variant="outlined"
-                    onClick={async () => {
-                      if (!selectedParticipantId) return;
-                      try {
-                        setAddingMember(true);
-                        await addGroupMember(group.id, selectedParticipantId);
-                        const added = participants.find((p) => String(p.id) === String(selectedParticipantId));
-                        if (added) {
-                          setMembers((prev) => [...prev, added]);
+                    <Button variant="outlined"
+                      onClick={async () => {
+                        if (!selectedParticipantId) return;
+                        try {
+                          setAddingMember(true);
+                          await addGroupMember(group.id, selectedParticipantId);
+                          const added = participants.find((p) => String(p.id) === String(selectedParticipantId));
+                          if (added) {
+                            setMembers((prev) => [...prev, added]);
+                          }
+                          setSelectedParticipantId('');
+                        } catch (e) {
+                          setParticipantsError(e.message || 'Ошибка добавления участника');
+                        } finally {
+                          setAddingMember(false);
                         }
-                        setSelectedParticipantId('');
-                      } catch (e) {
-                        setParticipantsError(e.message || 'Ошибка добавления участника');
-                      } finally {
-                        setAddingMember(false);
-                      }
-                    }}
-                    disabled={!selectedParticipantId || addingMember}
-                  >
-                    Добавить
-                  </Button>
-                </Box>
+                      }}
+                      disabled={!selectedParticipantId || addingMember}
+                    >
+                      Добавить
+                    </Button>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>

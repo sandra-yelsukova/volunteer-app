@@ -25,9 +25,11 @@ export default function MainLayout() {
             </Button>
           )}
 
-          <Button color="inherit" sx={{ fontSize: '1rem' }} component={Link} to="/reports">
-            Отчеты
-          </Button>
+          {isOrganizer && (
+            <Button color="inherit" sx={{ fontSize: '1rem' }} component={Link} to="/reports">
+              Отчеты
+            </Button>
+          )}
 
           <Box sx={{ flexGrow: 1 }} />
 
