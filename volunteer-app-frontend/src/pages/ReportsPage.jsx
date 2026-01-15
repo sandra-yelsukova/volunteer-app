@@ -1,14 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import { getReportHtml, getReports } from '../api/api';
 
 export default function ReportsPage() {
@@ -103,17 +94,7 @@ export default function ReportsPage() {
                       {report.description}
                     </Typography>
                   )}
-                  {report.birtTemplate && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                      Шаблон: {report.birtTemplate}
-                    </Typography>
-                  )}
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => handleRenderReport(report.id)}
-                    disabled={reportLoading && activeReportId === report.id}
-                  >
+                  <Button variant="outlined" size="small" onClick={() => handleRenderReport(report.id)} disabled={reportLoading && activeReportId === report.id} >
                     {reportLoading && activeReportId === report.id ? 'Формирование...' : 'Сформировать отчет'}
                   </Button>
                 </CardContent>
@@ -146,17 +127,7 @@ export default function ReportsPage() {
           )}
           {reportHtml && !reportLoading && (
             <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, overflow: 'hidden' }}>
-              <Box
-                component="iframe"
-                title="BIRT report"
-                sx={{
-                  width: '100%',
-                  border: 'none',
-                  minHeight: 420,
-                  display: 'block',
-                }}
-                srcDoc={reportHtml}
-              />
+              <Box component="iframe" title="BIRT report" sx={{ width: '100%', border: 'none', minHeight: 420, display: 'block' }} srcDoc={reportHtml} />
             </Box>
           )}
         </Box>

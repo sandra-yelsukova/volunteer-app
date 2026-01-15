@@ -21,6 +21,7 @@ import jakarta.annotation.PreDestroy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 
 @Service
 public class BirtReportService {
@@ -46,12 +47,29 @@ public class BirtReportService {
     @PostConstruct
     public void init() {
         EngineConfig config = new EngineConfig();
+
+        config.setBIRTHome(
+                Paths.get("birt-runtime", "ReportEngine")
+                        .toAbsolutePath()
+                        .toString()
+        );
+
+        config.setLogConfig(
+                Paths.get("birt-logs").toAbsolutePath().toString(),
+                java.util.logging.Level.ALL
+        );
+
         try {
             Platform.startup(config);
-            IReportEngineFactory factory = (IReportEngineFactory) Platform.createFactoryObject(IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY);
+
+            IReportEngineFactory factory =
+                    (IReportEngineFactory) Platform.createFactoryObject(
+                            IReportEngineFactory.EXTENSION_REPORT_ENGINE_FACTORY
+                    );
+
             this.reportEngine = factory.createReportEngine(config);
-        } catch (BirtException ex) {
-            throw new IllegalStateException("Не удалось инициализировать BIRT", ex);
+        } catch (BirtException e) {
+            throw new IllegalStateException("Не удалось инициализировать BIRT", e);
         }
     }
 
@@ -97,17 +115,25 @@ public class BirtReportService {
     }
 
     private void configureDataSource(IReportRunnable design) {
-        ReportDesignHandle reportDesign = (ReportDesignHandle) design.getDesignHandle();
-        OdaDataSourceHandle dataSource = (OdaDataSourceHandle) reportDesign.findDataSource("VolunteerDB");
-        if (dataSource == null) {
-            return;
+        ReportDesignHandle reportDesign =
+                (ReportDesignHandle) design.getDesignHandle();
+
+        OdaDataSourceHandle ds =
+                (OdaDataSourceHandle) reportDesign.findDataSource("VolunteerDB");
+
+        if (ds == null) {
+            throw new IllegalStateException("Datasource VolunteerDB not found");
         }
+
         try {
-            dataSource.setProperty("odaURL", datasourceUrl);
-            dataSource.setProperty("odaUser", datasourceUsername);
-            dataSource.setProperty("odaPassword", datasourcePassword);
-        } catch (SemanticException ex) {
-            throw new IllegalStateException("Не удалось настроить источник данных BIRT", ex);
+            ds.setProperty("odaDriverClass", "org.postgresql.Driver");
+            ds.setProperty("odaURL", datasourceUrl);
+            ds.setProperty("odaUser", datasourceUsername);
+            ds.setProperty("odaPassword", datasourcePassword);
+
+            ds.setProperty("odaAutoCommit", "true");
+        } catch (SemanticException e) {
+            throw new IllegalStateException(e);
         }
     }
 }
