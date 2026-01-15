@@ -2,6 +2,7 @@
 <report xmlns="http://www.eclipse.org/birt/2005/design" version="3.2.22" id="1">
     <property name="createdBy">Volunteer App</property>
     <property name="units">mm</property>
+    <property name="htmlMeta">charset=UTF-8</property>
     <data-sources>
         <oda-data-source
             extensionID="org.eclipse.birt.report.data.oda.jdbc"
@@ -12,7 +13,7 @@
             <property name="odaURL">jdbc:postgresql://localhost:5432/volunteer_db</property>
             <property name="odaUser">postgres</property>
 
-            <encrypted-property name="odaPassword">cG9zdGdyZXM=</encrypted-property>
+            <property name="odaPassword">postgres</property>
 
         </oda-data-source>
     </data-sources>
@@ -68,6 +69,18 @@ ORDER BY full_name;
             <property name="dataSource">VolunteerDB</property>
         </oda-data-set>
     </data-sets>
+    <styles>
+        <style name="ReportTableCell">
+            <property name="overflow">visible</property>
+            <property name="textOverflow">visible</property>
+            <property name="whiteSpace">normal</property>
+        </style>
+        <style name="ReportTableText">
+            <property name="color">#000000</property>
+            <property name="overflow">visible</property>
+            <property name="whiteSpace">normal</property>
+        </style>
+    </styles>
     <body>
         <table id="5">
             <property name="dataSet">VolunteerOccupancy</property>
@@ -119,32 +132,44 @@ ORDER BY full_name;
             <header>
                 <row id="12">
                     <cell id="13">
+                        <property name="style">ReportTableCell</property>
                         <label id="14">
+                            <property name="style">ReportTableText</property>
                             <text-property name="text">ID волонтёра</text-property>
                         </label>
                     </cell>
                     <cell id="15">
+                        <property name="style">ReportTableCell</property>
                         <label id="16">
+                            <property name="style">ReportTableText</property>
                             <text-property name="text">Волонтёр</text-property>
                         </label>
                     </cell>
                     <cell id="17">
+                        <property name="style">ReportTableCell</property>
                         <label id="18">
+                            <property name="style">ReportTableText</property>
                             <text-property name="text">Email</text-property>
                         </label>
                     </cell>
                     <cell id="19">
+                        <property name="style">ReportTableCell</property>
                         <label id="20">
+                            <property name="style">ReportTableText</property>
                             <text-property name="text">Всего задач</text-property>
                         </label>
                     </cell>
                     <cell id="21">
+                        <property name="style">ReportTableCell</property>
                         <label id="22">
+                            <property name="style">ReportTableText</property>
                             <text-property name="text">Активные задачи</text-property>
                         </label>
                     </cell>
                     <cell id="23">
+                        <property name="style">ReportTableCell</property>
                         <label id="24">
+                            <property name="style">ReportTableText</property>
                             <text-property name="text">Завершенные задачи</text-property>
                         </label>
                     </cell>
@@ -153,32 +178,44 @@ ORDER BY full_name;
             <detail>
                 <row id="25">
                     <cell id="26">
+                        <property name="style">ReportTableCell</property>
                         <data id="27">
+                            <property name="style">ReportTableText</property>
                             <property name="columnBinding">volunteer_id</property>
                         </data>
                     </cell>
                     <cell id="28">
+                        <property name="style">ReportTableCell</property>
                         <data id="29">
+                            <property name="style">ReportTableText</property>
                             <property name="columnBinding">full_name</property>
                         </data>
                     </cell>
                     <cell id="30">
+                        <property name="style">ReportTableCell</property>
                         <data id="31">
+                            <property name="style">ReportTableText</property>
                             <property name="columnBinding">email</property>
                         </data>
                     </cell>
                     <cell id="32">
+                        <property name="style">ReportTableCell</property>
                         <data id="33">
+                            <property name="style">ReportTableText</property>
                             <property name="columnBinding">total_tasks</property>
                         </data>
                     </cell>
                     <cell id="34">
+                        <property name="style">ReportTableCell</property>
                         <data id="35">
+                            <property name="style">ReportTableText</property>
                             <property name="columnBinding">active_tasks</property>
                         </data>
                     </cell>
                     <cell id="36">
+                        <property name="style">ReportTableCell</property>
                         <data id="37">
+                            <property name="style">ReportTableText</property>
                             <property name="columnBinding">completed_tasks</property>
                         </data>
                     </cell>

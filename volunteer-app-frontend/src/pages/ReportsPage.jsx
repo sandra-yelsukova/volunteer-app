@@ -145,10 +145,19 @@ export default function ReportsPage() {
             </Typography>
           )}
           {reportHtml && !reportLoading && (
-            <Box
-              sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 2, overflowX: 'auto' }}
-              dangerouslySetInnerHTML={{ __html: reportHtml }}
-            />
+            <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, overflow: 'hidden' }}>
+              <Box
+                component="iframe"
+                title="BIRT report"
+                sx={{
+                  width: '100%',
+                  border: 'none',
+                  minHeight: 420,
+                  display: 'block',
+                }}
+                srcDoc={reportHtml}
+              />
+            </Box>
           )}
         </Box>
       </Box>
