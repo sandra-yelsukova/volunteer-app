@@ -166,6 +166,26 @@ export function getGroupsByOrganizer(organizerId) {
   return request(`/groups/by-organizer/${organizerId}`);
 }
 
+export function getReports() {
+  return request('/reports');
+}
+
+export async function getReportHtml(reportId) {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/reports/${reportId}/render`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Ошибка ${response.status}: ${text}`);
+  }
+
+  return response.text();
+}
+
 export function getGroupMembers(groupId) {
   return request(`/groups/${groupId}/members`);
 }
