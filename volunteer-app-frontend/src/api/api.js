@@ -248,6 +248,30 @@ export function deleteTask(id) {
   });
 }
 
+export function getTaskComments(taskId) {
+  return request(`/tasks/${taskId}/comments`);
+}
+
+export function createTaskComment(taskId, data) {
+  return request(`/tasks/${taskId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateTaskComment(taskId, commentId, data) {
+  return request(`/tasks/${taskId}/comments/${commentId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteTaskComment(taskId, commentId) {
+  return request(`/tasks/${taskId}/comments/${commentId}`, {
+    method: 'DELETE',
+  });
+}
+
 export function addGroupMember(groupId, userId) {
   return request(`/groups/${groupId}/members/${userId}`, {
     method: 'POST',

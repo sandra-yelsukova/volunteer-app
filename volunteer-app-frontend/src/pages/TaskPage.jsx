@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Typography, CircularProgress, Card, CardContent, Divider, Chip, Grid, Button, TextField, MenuItem, Link as MuiLink } from '@mui/material';
-import { getTaskById, updateTask, deleteTask, getGroupsByOrganizer, getProjectParticipants } from '../api/api';
+import { Box, Typography, CircularProgress, Card, CardContent, Divider, Chip, Grid, Button, TextField, MenuItem, Link as MuiLink, IconButton } from '@mui/material';
+import { getTaskById, updateTask, deleteTask, getGroupsByOrganizer, getProjectParticipants, getTaskComments, createTaskComment, updateTaskComment, deleteTaskComment } from '../api/api';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
@@ -20,6 +20,16 @@ export default function TaskPage() {
   const [participants, setParticipants] = useState([]);
   const [participantsLoading, setParticipantsLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const [addCommentMode, setAddCommentMode] = useState(false);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+  const [updatingCommentId, setUpdatingCommentId] = useState(null);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
   const navigate = useNavigate();
 
   const STATUS_LABELS = {
@@ -120,6 +130,38 @@ export default function TaskPage() {
       };
     }, [task?.project?.id]);
 
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    let cancelled = false;
+    setCommentsLoading(true);
+    setCommentsError('');
+
+    getTaskComments(id)
+      .then((data) => {
+        if (!cancelled) {
+          setComments(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setCommentsError(e.message || 'Ошибка загрузки комментариев');
+          setComments([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCommentsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
   };
@@ -148,6 +190,55 @@ export default function TaskPage() {
       description: task.description || '',
     });
     setEditMode(false);
+  };
+
+
+  const startEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.text || '');
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentText('');
+  };
+
+  const submitEditComment = async (commentId) => {
+    try {
+      setUpdatingCommentId(commentId);
+      const updatedComment = await updateTaskComment(task.id, commentId, {
+        text: editingCommentText,
+      });
+
+      setComments((prev) => prev.map((comment) => (
+        comment.id === commentId ? updatedComment : comment
+      )));
+      cancelEditComment();
+    } catch (e) {
+      alert(e.message || 'Ошибка редактирования комментария');
+    } finally {
+      setUpdatingCommentId(null);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Удалить комментарий?')) {
+      return;
+    }
+
+    try {
+      setDeletingCommentId(commentId);
+      await deleteTaskComment(task.id, commentId);
+      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+
+      if (editingCommentId === commentId) {
+        cancelEditComment();
+      }
+    } catch (e) {
+      alert(e.message || 'Ошибка удаления комментария');
+    } finally {
+      setDeletingCommentId(null);
+    }
   };
 
   if (loading) {
@@ -519,13 +610,122 @@ export default function TaskPage() {
 
       <Card>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Комментарии и заметки
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">
+              Комментарии и заметки
+            </Typography>
 
-          <Typography variant="body2" color="text.secondary">
+            {!addCommentMode ? (
+              <Button variant="outlined" onClick={() => setAddCommentMode(true)}>
+                Добавить комментарий
+              </Button>
+            ) : null}
+          </Box>
 
-          </Typography>
+          {addCommentMode ? (
+            <Box sx={{ mb: 3 }}>
+              <TextField fullWidth multiline minRows={3} label="Комментарий" value={newCommentText} onChange={(e) => setNewCommentText(e.target.value)} />
+
+              <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                <Button variant="contained" disabled={submittingComment}
+                  onClick={async () => {
+                    const authorId = getCurrentUserId();
+
+                    if (!authorId) {
+                      alert('Не удалось определить пользователя');
+                      return;
+                    }
+
+                    try {
+                      setSubmittingComment(true);
+                      const createdComment = await createTaskComment(task.id, {
+                        authorId,
+                        text: newCommentText,
+                      });
+                      setComments(prev => [createdComment, ...prev]);
+                      setNewCommentText('');
+                      setAddCommentMode(false);
+                    } catch (e) {
+                      alert(e.message || 'Ошибка добавления комментария');
+                    } finally {
+                      setSubmittingComment(false);
+                    }
+                  }}
+                >
+                  Отправить
+                </Button>
+
+                <Button variant="outlined"
+                  onClick={() => {
+                    setAddCommentMode(false);
+                    setNewCommentText('');
+                  }}
+                >
+                  Отмена
+                </Button>
+              </Box>
+            </Box>
+          ) : null}
+
+          {commentsLoading ? (
+            <Typography color="text.secondary">Загрузка комментариев...</Typography>
+          ) : commentsError ? (
+            <Typography color="error">{commentsError}</Typography>
+          ) : comments.length === 0 ? (
+            <Typography color="text.secondary">Комментариев пока нет.</Typography>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {comments.map((comment) => (
+                <Box key={comment.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 1.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, mb: 0.5, alignItems: 'center' }}>
+                    <MuiLink component={RouterLink} to={`/users/${comment.author?.id}`} underline="hover" variant="subtitle2">
+                      {comment.author?.surname} {comment.author?.name}
+                    </MuiLink>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+                        {comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ''}
+                      </Typography>
+
+                      <IconButton edge="end" aria-label="Редактировать комментарий"
+                        onClick={() => startEditComment(comment)}
+                        disabled={updatingCommentId === comment.id || deletingCommentId === comment.id}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+
+                      <IconButton edge="end" aria-label="Удалить комментарий"
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={deletingCommentId === comment.id || updatingCommentId === comment.id}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+
+                  {editingCommentId === comment.id ? (
+                    <Box sx={{ mt: 1 }}>
+                      <TextField fullWidth multiline minRows={3} label="Комментарий" value={editingCommentText} onChange={(e) => setEditingCommentText(e.target.value)} />
+
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                        <Button variant="contained" disabled={updatingCommentId === comment.id} onClick={() => submitEditComment(comment.id)} >
+                          Отправить
+                        </Button>
+
+                        <Button variant="outlined" onClick={cancelEditComment} disabled={updatingCommentId === comment.id} >
+                          Отмена
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2">
+                      {comment.text}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Box>

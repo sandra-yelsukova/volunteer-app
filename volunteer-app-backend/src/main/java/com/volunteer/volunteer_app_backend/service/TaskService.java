@@ -4,6 +4,7 @@ import com.volunteer.volunteer_app_backend.model.Project;
 import com.volunteer.volunteer_app_backend.model.Task;
 import com.volunteer.volunteer_app_backend.repository.ProjectRepository;
 import com.volunteer.volunteer_app_backend.repository.TaskRepository;
+import com.volunteer.volunteer_app_backend.repository.TaskCommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskCommentRepository taskCommentRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final VolunteerGroupRepository volunteerGroupRepository;
@@ -127,6 +129,7 @@ public class TaskService {
         if (!taskRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found");
         }
+        taskCommentRepository.deleteByTaskId(id);
         taskRepository.deleteById(id);
     }
 
