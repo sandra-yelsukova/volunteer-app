@@ -29,8 +29,8 @@ export default function ProjectPage() {
   const [joining, setJoining] = useState(false);
   const navigate = useNavigate();
 
-  function getCurrentUserId() {
-    const raw = localStorage.getItem('userId');
+  function parseUserId(rawUserId) {
+    const raw = rawUserId ?? localStorage.getItem('userId');
     const n = Number(raw);
     return Number.isFinite(n) ? n : null;
   }
@@ -123,7 +123,7 @@ export default function ProjectPage() {
     return <Typography>Проект не найден</Typography>;
   }
 
-  const currentUserId = auth?.userId ?? getCurrentUserId();
+  const currentUserId = parseUserId(auth?.userId);
   const isProjectOrganizer = currentUserId !== null && project?.organizer?.id === currentUserId;
   const isVolunteer = auth?.role === 'VOLUNTEER';
   const isCurrentUserParticipant = currentUserId !== null && participants.some((participant) => participant.id === currentUserId);
